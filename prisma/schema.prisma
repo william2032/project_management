@@ -13,3 +13,33 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model  User {
+  id Int @id @default(autoincrement())
+  name String
+  email String @unique
+  password String
+  role Role
+  assignedProjectId Int? @unique
+  assignedProject Project? @relation(fields: [assignedProjectId], references: [id]) //1:1 relation
+}
+
+model  Project {
+  id Int @id @default(autoincrement())
+  name String
+  description String
+  endDate DateTime? @map("end_date")
+  status Status
+  assignedUser User?
+}
+
+enum Role {
+  admin
+  user
+}
+
+enum Status {
+  pending
+  compeleted
+}
+
