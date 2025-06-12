@@ -1,12 +1,14 @@
-import { PrismaClient } from 'generated/prisma';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 
-let prisma: PrismaClient;
-
-export const getPrismaClient = (): PrismaClient => {
-  if (!prisma) {
-    prisma = new PrismaClient({
-      log: ['error', 'info', 'warn', 'query', 'info'],
-    });
+@Injectable()
+export class PrismaService extends PrismaClient implements OnModuleInit {
+  async onModuleInit() {
+    await this.$connect();
+    console.log('Database connected via PrismaService');
   }
-  return prisma;
-};
+
+  async onModuleDestroy() {
+    await this.$disconnect();
+  }
+}
