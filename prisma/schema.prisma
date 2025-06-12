@@ -22,6 +22,7 @@ model  User {
   role Role
   assignedProjectId Int? @unique
   assignedProject Project? @relation(fields: [assignedProjectId], references: [id]) //1:1 relation
+  profileImage String?
 }
 
 model  Project {
