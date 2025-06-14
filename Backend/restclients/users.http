@@ -26,3 +26,6 @@ Content-Type: {{contentType}}
   "password": "admin123",
   "role": "ADMIN"
 }
+
+### 2.1 Get user by ID
+GET {{baseUrl}}/users/1

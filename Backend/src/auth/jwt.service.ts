@@ -1,14 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService as NestJwtService } from '@nestjs/jwt';
-
 import { Role } from 'generated/prisma';
 import { ConfigService } from '@nestjs/config';
-
-export interface JwtPayload {
-  id: number;
-  email: string;
-  role: Role;
-}
+import { JwtPayload } from './types';
 
 @Injectable()
 export class CustomJwtService {
@@ -31,7 +25,7 @@ export class CustomJwtService {
 
   decodeToken(token: string): JwtPayload | null {
     try {
-      return this.jwtService.decode(token) as JwtPayload | null;
+      return this.jwtService.decode(token);
     } catch {
       return null;
     }

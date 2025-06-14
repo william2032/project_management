@@ -18,7 +18,7 @@
       <div class="right">
         <i class="fa-regular fa-user"></i>
         <h4>Admin</h4>
-        <div class="logout">
+        <div id="logout" style="cursor: pointer" class="logout">
           <i class="fa-solid fa-arrow-right-from-bracket"></i>
           <p>logout</p>
         </div>
@@ -95,125 +95,50 @@
         <div class="section users-section" style="display: none">
           <h1>All Users</h1>
           <table>
-            <tr>
-              
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Project</th>
-            </tr>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable">
+              <!-- Users inserted here -->
+            </tbody>
           </table>
         </div>
+        <button id="showUsersBtn">show users</button>
 
         <!-- Projects Section -->
         <div class="section projects-section" style="display: none">
-            <h1>Projects</h1>
-          <div class="projects-cards">
-            <div class="card">
-              <div class="header">
-                <h4>Project Name</h4>
-                <p>In progress</p>
-              </div>
-              <div class="description">
-                <p id="projectDescription">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Quisquam, quae
-                </p>
-                <p>Due: 12/12/2022 <span style="margin-left: 90px;">Overdue</span></p>
-                <p>Assigned to: John Doe</p>
-              </div>
-              <hr />
-              <div class="btns">
-                <button id="editButton" class="edit">Edit</button>
-                <button id="deleteButton" class="delete">Delete</button>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="header">
-                <h4>Project Name</h4>
-                <p>In progress</p>
-              </div>
-              <div class="description">
-                <p id="projectDescription">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Quisquam, quae
-                </p>
-                <p>Due: 12/12/2022 <span style="margin-left: 90px;">Overdue</span></p>
-                <p>Assigned to: John Doe</p>
-              </div>
-              <hr />
-              <div class="btns">
-                <button id="editButton" class="edit">Edit</button>
-                <button id="deleteButton" class="delete">Delete</button>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="header">
-                <h4>Project Name</h4>
-                <p>In progress</p>
-              </div>
-              <div class="description">
-                <p id="projectDescription">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Quisquam, quae
-                </p>
-                <p>Due: 12/12/2022 <span style="margin-left: 90px;">Overdue</span></p>
-                <p>Assigned to: John Doe</p>
-              </div>
-              <hr />
-              <div class="btns">
-                <button id="editButton" class="edit">Edit</button>
-                <button id="deleteButton" class="delete">Delete</button>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="header">
-                <h4>Project Name</h4>
-                <p>In progress</p>
-              </div>
-              <div class="description">
-                <p id="projectDescription">
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                  Quisquam, quae
-                </p>
-                <p>Due: 12/12/2022 <span style="margin-left: 90px;">Overdue</span></p>
-                <p>Assigned to: John Doe</p>
-              </div>
-              <hr />
-              <div class="btns">
-                <button id="editButton" class="edit">Edit</button>
-                <button id="deleteButton" class="delete">Delete</button>
-              </div>
-            </div>
+          <h1>All Projects</h1>
+          <div class="projects-cards" id="projectsList">
+            <!-- Projects will be inserted here -->
           </div>
         </div>
 
         <!-- Add Project Section -->
         <div class="section add-project-section" style="display: none">
-          <div class="form-project">
-            <h1 style="text-align: center;">Add Project</h1>
-            <p style="text-align: center;">Create a new Project</p>
-            <form action="">
-              <input type="text" placeholder="Project Name" id="projectName" />
-              <textarea
-                name=""
-                id="Description"
-                cols="30"
-                rows="10"
-                placeholder="Project Description"
-              ></textarea>
+          <h2>Add New Project</h2>
+          <form id="addProjectForm">
+            <div class="form-group">
+              <label for="projectTitle">Title</label>
+              <input type="text" id="projectTitle" name="title" required>
+            </div>
+            <div class="form-group">
+              <label for="projectDescription">Description</label>
+              <textarea id="projectDescription" name="description" required></textarea>
+            </div>
+            <div class="form-group">
               <label for="endDate">End Date</label>
-              <input type="date" name="endDate" id="endDate" />
-              <button type="submit">Submit</button>
-            </form>
-          </div>
+              <input type="date" id="endDate" name="endDate">
+            </div>
+            <button type="submit">Add Project</button>
+          </form>
         </div>
       </div>
     </div>
 
-    <script src="../dist/main.js" type="module"></script>
+    <script src="../src/main.js" type="module"></script>
   </body>
 </html>

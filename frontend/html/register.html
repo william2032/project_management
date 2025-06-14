@@ -13,8 +13,8 @@
   </head>
   <body>
     <main>
-      <div class="container_form">
-        <form action="" method="post">
+      <div  class="container_form">
+        <form id="registerForm" method="POST">
           <div class="ani1">
             <h2 style="letter-spacing: 2px">Create an Account</h2>
             <lord-icon
@@ -53,6 +53,7 @@
             <div class="input-container">
               <i class="fa-solid fa-user"></i>
               <input
+                id="email"
                 type="email"
                 name="email"
                 required
@@ -62,30 +63,22 @@
             <div class="input-container">
               <i class="fa-solid fa-user"></i>
               <input
+                id="name"
                 type="text"
-                name="username"
+                name="name"
                 required
-                placeholder="Enter Username..."
+                placeholder="Enter Name..."
               />
             </div>
             <div class="input-container">
               <i class="fa-solid fa-lock"></i>
               <input
+                id="password"
                 type="password"
                 name="password"
                 minlength="8"
                 required
                 placeholder="Enter Password..."
-              />
-            </div>
-            <div class="input-container">
-              <i class="fa-solid fa-lock"></i>
-              <input
-                type="password"
-                name="confirmPassword"
-                minlength="8"
-                required
-                placeholder="Confirm Password..."
               />
             </div>
 
@@ -99,7 +92,9 @@
             </div>
           </div>
         </form>
+        <div id="response" class="hidden"></div>
       </div>
     </main>
   </body>
+  <script src="../src/main.js"></script>
 </html>
