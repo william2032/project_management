@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterUserDto } from './dtos/register-user.dto';
-import { LoginUserDto } from './dtos/login-user.dto';
 import * as bcrypt from 'bcrypt';
+import { LoginUserDto } from './dtos/login-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -16,6 +16,7 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
     return this.prisma.user.create({
       data: {
+        name: dto.name,
         email: dto.email,
         password: hashedPassword,
         role: 'user',
@@ -28,7 +29,9 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
+
     if (!user) return null;
+
     const isValid = await bcrypt.compare(dto.password, user.password);
     if (!isValid) return null;
     return { id: user.id, email: user.email, role: user.role };
