@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="104060dc-b687-4e8d-a72d-91684819cd41" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/prettier.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/prettier.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/.prettierrc" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/.prettierrc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/eslint.config.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/eslint.config.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/nest-cli.json" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/nest-cli.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/prisma/migrations/20250611165744_init/migration.sql" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/prisma/migrations/20250611165744_init/migration.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/prisma/migrations/20250612211454_init/migration.sql" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/prisma/migrations/20250612211454_init/migration.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/prisma/migrations/migration_lock.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/prisma/migrations/migration_lock.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/prisma/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/restclients/users.http" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/restclients/users.http" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/app.controller.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/app.controller.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/app.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/app.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/app.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/app.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/app.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/app.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/auth/auth.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/auth.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/auth/auth.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/auth.service.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/auth/auth.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/auth.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/auth/jwt-auth.guard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/jwt-auth.guard.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/auth/jwt-strategy.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/jwt-strategy.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/auth/jwt.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/jwt.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/auth/roles.decorator.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/roles.decorator.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/auth/roles.guard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/roles.guard.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/auth/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/types.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/main.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/prisma/prisma.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/prisma/prisma.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/prisma/prisma.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/prisma/prisma.service.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/prisma/prisma.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/prisma/prisma.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/projects/dtos/assign-project.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/dtos/assign-project.dto.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/projects/dtos/complete-project.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/dtos/complete-project.dto.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/projects/dtos/create-project.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/dtos/create-project.dto.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/projects/interfaces/project.interface.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/interfaces/project.interface.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/projects/projects.controller.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/projects.controller.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/projects/projects.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/projects.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/projects/projects.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/projects.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/projects/projects.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/projects.service.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/projects/projects.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/projects.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/users/dtos/login-user.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/dtos/login-user.dto.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/users/dtos/register-user.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/dtos/register-user.dto.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/users/users.controller.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/users.controller.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/users/users.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/users.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/users/users.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/users.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/users/users.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/users.service.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/src/users/users.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/users.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/test/app.e2e-spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/test/app.e2e-spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/test/jest-e2e.json" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/test/jest-e2e.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/tsconfig.build.json" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/tsconfig.build.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Backend/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/tsconfig.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;william2032&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:william2032/project_management.git&quot;,
+    &quot;accountId&quot;: &quot;b3981dec-a930-4d35-92ff-ae80b12a2055&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
+  <component name="ProjectId" id="2yRC7FNsCZGEDi5zNuxadW3gUrP" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="sortKey" value="BY_TIME_DESCENDING" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;HTTP Request.users | 1.1 Create a regular user.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP Request.users | 1.2 Create an admin user.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;C:\\Users\\User\\Desktop\\Teach2GiveAttachment\\Week6\\Group-project\\project_management\\Backend\\node_modules\\prettier&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\User\\Desktop\\Teach2GiveAttachment\\Week6\\Group-project\\project_management\\Backend\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\User\Desktop\Teach2GiveAttachment\Week6\Group-project\project_management\Backend" />
+    </key>
+  </component>
+  <component name="RunManager" selected="HTTP Request.users | 1.2 Create an admin user">
+    <configuration name="users | 1.1 Create a regular user" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$PROJECT_DIR$/Backend/restclients/users.http" executionIdentifier="1.1 Create a regular user" runType="Run single request">
+      <method v="2" />
+    </configuration>
+    <configuration name="users | 1.2 Create an admin user" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$PROJECT_DIR$/Backend/restclients/users.http" executionIdentifier="1.2 Create an admin user" index="2" runType="Run single request">
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="HTTP Request.users | 1.2 Create an admin user" />
+        <item itemvalue="HTTP Request.users | 1.1 Create a regular user" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-WS-243.25659.40" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="104060dc-b687-4e8d-a72d-91684819cd41" name="Changes" comment="" />
+      <created>1749787833633</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1749787833633</updated>
+      <workItem from="1749787833635" duration="10519000" />
+      <workItem from="1749881808200" duration="917000" />
+      <workItem from="1749882805938" duration="9593000" />
+      <workItem from="1749892672046" duration="150000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
