@@ -38,7 +38,7 @@ export class ProjectsService {
       throw new BadRequestException('user is already assigned to project');
     }
     //if project exists
-    const project   = await this.prisma.project.findUnique({
+    const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
     });
     if (!project) {
@@ -49,7 +49,7 @@ export class ProjectsService {
     await this.prisma.$transaction([
       this.prisma.project.update({
         where: { id: dto.projectId },
-        data: { assignedUserId: dto.userId },
+        data: { assignedUser: { connect: { id: dto.userId } } },
       }),
       this.prisma.user.update({
         where: { id: dto.userId },
@@ -83,7 +83,6 @@ export class ProjectsService {
     return user.assignedProject || { message: 'No project assigned' };
   }
 
-
   //mark project as completed
   async completeProject(
     projectId: number,
@@ -93,16 +92,23 @@ export class ProjectsService {
     {
       const project = await this.prisma.project.findUnique({
         where: { id: projectId },
+        include: { assignedUser: true },
       });
       if (!project) {
         throw new NotFoundException('project not found');
       }
-      if (project.assignedUserId !== userId) {
+      if (!project.assignedUser || project.assignedUser.id !== userId) {
         throw new BadRequestException('Project not assigned to this user');
       }
 
       //update project status to completed
-      return this.prisma.project
+      return this.prisma.project.update({
+        where: { id: projectId },
+        data: {
+          status: 'compeleted',
+          // completedAt: new Date(),
+        },
+      });
     }
   }
 }
