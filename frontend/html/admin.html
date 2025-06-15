@@ -39,6 +39,10 @@
             <i class="fa-solid fa-folder"></i>
             <p>Projects</p>
           </li>
+          <li data-section="completed-projects">
+            <i class="fa-solid fa-check-circle"></i>
+            <p>Completed Projects</p>
+          </li>
           <li data-section="add-project">
             <i class="fa-solid fa-plus"></i>
             <p>Add Project</p>
@@ -51,7 +55,7 @@
         <div class="section dashboard-section" style="display: block">
           <div style="display: block; text-align: center" class="head">
             <h1 style="font-size: 2rem">Dashboard</h1>
-            <p style="font-size: 1.5rem">Projects Hub</p>
+            <p style="font-size: 1.5rem">Projects Place</p>
           </div>
 
           <div class="total">
@@ -83,10 +87,29 @@
                 <h1>2</h1>
                 <div class="down">
                   <i class="fa-solid fa-check"></i>
-                  <p>Completed Projects</p>
+                  <p>Assigned Projects</p>
                 </div>
                 
               </div>
+            </div>
+          </div>
+          <hr>
+          <div class="assign-projects">
+            <h1>Assign Projects</h1>
+            <div id="assignProject" class="assign-project-form">
+              <form id="assignProjectForm">
+                <div class="form-group">
+                  <select id="projectSelect" required>
+                    <option value="">Select a project</option>
+                    <!-- Options will be populated here -->
+                  </select>
+                  <select id="userSelect" required>
+                    <option value="">Select a user</option>
+                    <!-- Options will be populated here -->
+                  </select>
+                </div>
+                <button type="submit">Assign Project</button>
+              </form>
             </div>
           </div>
         </div>
@@ -94,20 +117,11 @@
         <!-- Users Section -->
         <div class="section users-section" style="display: none">
           <h1>All Users</h1>
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-              </tr>
-            </thead>
-            <tbody id="usersTable">
-              <!-- Users inserted here -->
-            </tbody>
-          </table>
+          <div id="usersTable">
+            <!-- User cards will be loaded here -->
+          </div>
         </div>
-        <button id="showUsersBtn">show users</button>
+        
 
         <!-- Projects Section -->
         <div class="section projects-section" style="display: none">
@@ -117,21 +131,25 @@
           </div>
         </div>
 
+        <!-- Completed Projects Section -->
+        <div class="section completed-projects-section" style="display: none">
+          <h1>Completed Projects</h1>
+          <div class="completed-projects-container" id="completedProjectsList">
+            <!-- Completed projects will be loaded here -->
+          </div>
+        </div>
+
         <!-- Add Project Section -->
         <div class="section add-project-section" style="display: none">
           <h2>Add New Project</h2>
           <form id="addProjectForm">
             <div class="form-group">
-              <label for="projectTitle">Title</label>
-              <input type="text" id="projectTitle" name="title" required>
+              <label for="title">Title</label>
+              <input type="text" id="title" name="title" required>
             </div>
             <div class="form-group">
-              <label for="projectDescription">Description</label>
-              <textarea id="projectDescription" name="description" required></textarea>
-            </div>
-            <div class="form-group">
-              <label for="endDate">End Date</label>
-              <input type="date" id="endDate" name="endDate">
+              <label for="description">Description</label>
+              <textarea id="description" name="description" required></textarea>
             </div>
             <button type="submit">Add Project</button>
           </form>
@@ -139,6 +157,6 @@
       </div>
     </div>
 
-    <script src="../src/main.js" type="module"></script>
+    <script src="../dist/main.js" type="module"></script>
   </body>
 </html>

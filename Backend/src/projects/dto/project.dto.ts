@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, IsDate, IsDateString } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
 import { Status } from '../../../generated/prisma';
 
 export class CreateProjectDto {
@@ -9,10 +9,6 @@ export class CreateProjectDto {
   @IsString()
   @IsNotEmpty()
   description: string;
-
-  @IsOptional()
-  @IsDateString()
-  endDate?: string | null;
 }
 
 export class UpdateProjectDto {
@@ -26,21 +22,7 @@ export class UpdateProjectDto {
   @IsNotEmpty()
   description?: string;
 
-  @IsOptional()
-  @IsDateString()
-  endDate?: string | null;
-
   @IsEnum(Status)
   @IsOptional()
   status?: Status;
-}
-
-export class AssignProjectDto {
-  @IsString()
-  @IsNotEmpty()
-  projectId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  userId: string;
 } 

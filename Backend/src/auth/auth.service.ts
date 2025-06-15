@@ -1,4 +1,4 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { CustomJwtService } from './jwt.service';
@@ -17,12 +17,15 @@ export class AuthService {
   ) {}
 
   async register(userData: RegisterUserDto) {
+    console.log('Auth Service - Registering user:', { email: userData.email });
+    
     // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
       where: { email: userData.email },
     });
 
     if (existingUser) {
+      console.log('Auth Service - User already exists:', existingUser.email);
       throw new ConflictException('Email already in use');
     }
 
@@ -47,29 +50,40 @@ export class AuthService {
       },
     });
 
+    console.log('Auth Service - User registered successfully:', user);
     return { message: 'User created', user };
   }
 
   async login(email: string, password: string, dto: LoginUserDto) {
+    console.log('Auth Service - Attempting login for:', email);
+    
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
-    console.log('Found user:', user);
+    console.log('Auth Service - Found user:', user ? { ...user, password: '[REDACTED]' } : null);
 
     if (!user) {
-      throw new Error('User not found');
+      console.log('Auth Service - User not found');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const isValid = await bcrypt.compare(dto.password, user.password);
+    console.log('Auth Service - Password validation:', isValid);
 
     if (user && isValid) {
+      const payload = {
+        sub: user.id.toString(),
+        email: user.email,
+        role: user.role,
+      };
+      console.log('Auth Service - Generating token with payload:', payload);
+      
+      const token = this.jwtService.generateToken(payload);
+      console.log('Auth Service - Token generated:', token.substring(0, 20) + '...');
+      
       return {
-        access_token: this.jwtService.generateToken({
-          sub: user.id.toString(),
-          email: user.email,
-          role: user.role,
-        }),
+        access_token: token,
         user: {
           id: user.id,
           email: user.email,
@@ -79,6 +93,7 @@ export class AuthService {
       };
     }
 
-    throw new Error('Invalid credentials');
+    console.log('Auth Service - Invalid credentials');
+    throw new UnauthorizedException('Invalid credentials');
   }
 }

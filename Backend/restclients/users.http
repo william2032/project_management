@@ -9,9 +9,9 @@ POST {{baseUrl}}/users/register
 Content-Type: {{contentType}}
 
 {
-  "name": "John Doe",
-  "email": "john.doe@example.com",
-  "password": "securePassword123",
+  "name": "Test User",
+  "email": "test@example.com", 
+  "password": "test123",
   "role": "USER"
 }
 

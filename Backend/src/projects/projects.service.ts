@@ -6,11 +6,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  CreateProjectDto,
-  UpdateProjectDto,
-  AssignProjectDto,
-} from './dto/project.dto';
+import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
+import { Project } from 'generated/prisma';
 
 @Injectable()
 export class ProjectsService {
@@ -18,47 +15,21 @@ export class ProjectsService {
 
   async create(createProjectDto: CreateProjectDto) {
     try {
-      console.log('Creating project with data:', {
-        ...createProjectDto,
-        endDateType: typeof createProjectDto.endDate,
-        endDateValue: createProjectDto.endDate
-      });
-
-      const endDate = createProjectDto.endDate
-        ? new Date(createProjectDto.endDate)
-        : null;
-      
-      console.log('Date processing:', {
-        rawEndDate: createProjectDto.endDate,
-        parsedEndDate: endDate,
-        parsedEndDateType: endDate ? typeof endDate : 'null',
-        parsedEndDateValue: endDate ? endDate.toISOString() : null
-      });
+      console.log('Creating project with data:', createProjectDto);
 
       const projectData = {
         title: createProjectDto.title,
         description: createProjectDto.description,
-        endDate,
+        status: 'in_progress' as const,
         createdAt: new Date(),
         updatedAt: new Date(),
-        status: 'in_progress' as const,
       };
-      console.log('Final project data:', {
-        ...projectData,
-        endDateType: typeof projectData.endDate,
-        endDateValue: projectData.endDate ? projectData.endDate.toISOString() : null
-      });
 
       const result = await this.prisma.project.create({
         data: projectData,
       });
-      
-      console.log('Created project:', {
-        ...result,
-        endDateType: typeof result.endDate,
-        endDateValue: result.endDate ? result.endDate.toISOString() : null
-      });
 
+      console.log('Created project:', result);
       return result;
     } catch (error) {
       console.error('Error creating project:', error);
@@ -114,49 +85,94 @@ export class ProjectsService {
     }
   }
 
-  async assignProject(assignProjectDto: AssignProjectDto) {
+  async update(id: number, updateProjectDto: UpdateProjectDto) {
     try {
-      const projectId = parseInt(assignProjectDto.projectId, 10);
-      const userId = parseInt(assignProjectDto.userId, 10);
-
-      if (isNaN(projectId) || isNaN(userId)) {
-        throw new BadRequestException('Invalid project or user ID');
-      }
-
-      // Check if project exists
       const project = await this.prisma.project.findUnique({
-        where: { id: projectId },
+        where: { id },
       });
 
       if (!project) {
-        throw new NotFoundException(`Project with ID ${projectId} not found`);
+        throw new NotFoundException(`Project with ID ${id} not found`);
       }
 
-      // Check if user exists
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-      });
-
-      if (!user) {
-        throw new NotFoundException(`User with ID ${userId} not found`);
-      }
-
-      // Check if user already has a project
-      const userWithProject = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: { project: true },
-      });
-
-      if (userWithProject?.project) {
-        throw new BadRequestException('User already has an assigned project');
-      }
-
-      // Assign project to user
       return await this.prisma.project.update({
-        where: { id: projectId },
+        where: { id },
+        data: {
+          ...updateProjectDto,
+          updatedAt: new Date(),
+        },
+        include: {
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error updating project:', error);
+      throw new InternalServerErrorException('Failed to update project');
+    }
+  }
+
+  async remove(id: number): Promise<any> {
+    try {
+      const project = await this.prisma.project.findUnique({
+        where: { id },
+      });
+
+      if (!project) {
+        throw new NotFoundException(`Project with ID ${id} not found`);
+      }
+
+      return await this.prisma.project.delete({
+        where: { id },
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error deleting project:', error);
+      throw new InternalServerErrorException('Failed to delete project');
+    }
+  }
+
+  async assignProject(id: number, userId: number): Promise<any> {
+    try {
+      // Check if project exists
+      const project = await this.prisma.project.findUnique({
+        where: { id },
+      });
+
+      if (!project) {
+        throw new NotFoundException(`Project with ID ${id} not found`);
+      }
+
+      // Check if user is already assigned to another project
+      const existingAssignment = await this.prisma.project.findFirst({
+        where: {
+          userId: userId,
+          id: { not: id }, // Exclude current project
+        },
+      });
+
+      if (existingAssignment) {
+        throw new BadRequestException(
+          'User is already assigned to another project',
+        );
+      }
+
+      return await this.prisma.project.update({
+        where: { id },
         data: {
           userId: userId,
           status: 'in_progress',
+          updatedAt: new Date(),
         },
         include: {
           assignedTo: {
@@ -179,24 +195,75 @@ export class ProjectsService {
       throw new InternalServerErrorException('Failed to assign project');
     }
   }
-
-  async update(id: number, updateProjectDto: UpdateProjectDto) {
+  async getUserProjects(userId: number): Promise<Project[]> {
     try {
-      const project = await this.prisma.project.findUnique({
-        where: { id },
+      // First verify the user exists
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+
+      // Return projects for this user without admin check
+      return await this.prisma.project.findMany({
+        where: { userId },
+        include: {
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error fetching user projects:', error);
+      throw new InternalServerErrorException('Failed to fetch user projects');
+    }
+  }
+
+  async markAsComplete(projectId: number, userId: number) {
+    try {
+      // Ensure both IDs are numbers
+      const projectIdNum = Number(projectId);
+      const userIdNum = Number(userId);
+
+      if (isNaN(projectIdNum) || isNaN(userIdNum)) {
+        throw new Error('Invalid project or user ID');
+      }
+
+      // First check if the project exists and is assigned to the user
+      const project = await this.prisma.project.findFirst({
+        where: {
+          id: projectIdNum,
+          assignedTo: {
+            id: userIdNum,
+          },
+        },
+        include: {
+          assignedTo: true,
+        },
       });
 
       if (!project) {
-        throw new NotFoundException(`Project with ID ${id} not found`);
+        throw new NotFoundException('Project not found or not assigned to you');
       }
 
+      // Update the project status
       return await this.prisma.project.update({
-        where: { id },
+        where: { id: projectIdNum },
         data: {
-          ...updateProjectDto,
-          endDate: updateProjectDto.endDate
-            ? new Date(updateProjectDto.endDate)
-            : undefined,
+          status: 'completed',
+          updatedAt: new Date(),
         },
         include: {
           assignedTo: {
@@ -209,79 +276,13 @@ export class ProjectsService {
         },
       });
     } catch (error) {
+      console.error('Detailed error completing project:', error);
       if (error instanceof NotFoundException) {
         throw error;
       }
-      console.error('Error updating project:', error);
-      throw new InternalServerErrorException('Failed to update project');
+      throw new InternalServerErrorException(
+        `Failed to complete project: ${error.message}`,
+      );
     }
-  }
-
-  async remove(id: number) {
-    try {
-      const project = await this.prisma.project.findUnique({
-        where: { id },
-      });
-
-      if (!project) {
-        throw new NotFoundException(`Project with ID ${id} not found`);
-      }
-
-      return await this.prisma.project.delete({
-        where: { id },
-      });
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      console.error('Error deleting project:', error);
-      throw new InternalServerErrorException('Failed to delete project');
-    }
-  }
-
-  //get the assigned project for user
-  async getAssignedProject(userId: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: { project: true },
-    });
-    if (!user) {
-      throw new NotFoundException('user not found');
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return user.project;
-  }
-
-  //mark project as completed
-  async completeProject(projectId: number, userId: number) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-      include: {
-        assignedTo: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-    if (!project.assignedTo) {
-      throw new BadRequestException('Project is not assigned to any user');
-    }
-    if (project.assignedTo.id !== userId) {
-      throw new BadRequestException('Project not assigned to this user');
-    }
-
-    //update project status to completed
-    return this.prisma.project.update({
-      where: { id: projectId },
-      data: {
-        status: 'completed',
-      },
-    });
   }
 }

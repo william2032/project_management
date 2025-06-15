@@ -1,0 +1,5 @@
+{
+  "message": "Cannot POST /users",
+  "error": "Not Found",
+  "statusCode": 404
+}

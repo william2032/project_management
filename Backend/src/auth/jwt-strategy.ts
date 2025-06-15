@@ -1,25 +1,40 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { CustomJwtService } from './jwt.service';
-import { UsersService } from '../users/users.service';
-import { JwtPayload, RequestUser } from './types';
+import { ConfigService } from '@nestjs/config';
+import { Request } from 'express';
+import { JwtPayload } from './types';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(
-    private jwtService: CustomJwtService,
-    private usersService: UsersService,
-  ) {
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request): string | null => {
+          // Check Authorization header first
+          const authHeader = req.headers.authorization;
+          if (authHeader && authHeader.startsWith('Bearer ')) {
+            return authHeader.substring(7);
+          }
+          // Then check cookies
+          const token = req.cookies?.token;
+          return typeof token === 'string' ? token : null;
+        },
+      ]),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'your-secret-key',
+      secretOrKey: configService.get<string>('JWT_SECRET') || 'secret-key',
     });
   }
-  async validate(payload: JwtPayload): Promise<RequestUser> {
-    const user = await this.usersService.findById(parseInt(payload.sub));
-    if (!user) throw new UnauthorizedException('Invalid token');
+
+  async validate(payload: JwtPayload) {
+    // Basic validation that works for all authenticated users
+    const user = await Promise.resolve({
+      userId: payload.sub,
+      email: payload.email,
+      role: payload.role,
+    });
     return user;
   }
 }

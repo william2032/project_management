@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="../styles/style.css" />
     <script
       src="https://kit.fontawesome.com/71bcccf63f.js"
       crossorigin="anonymous"
     ></script>
     <script src="https://cdn.lordicon.com/lordicon.js"></script>
+    <link rel="stylesheet" href="../styles/style.css">
     <title>Log In</title>
   </head>
   <body>
     <main>
       <div style="margin-top: 80px" class="container_form">
-        <form id="loginForm" action="" method="post">
+        <form id="loginForm">
           <div class="ani1">
             <h2 style="letter-spacing: 3px">Welcome Back</h2>
             <lord-icon
@@ -77,7 +77,7 @@
               <button class="btn" style="letter-spacing: 3px" type="submit">
                 Log In
               </button>
-              <p>Dont have an account? <a href="./register.html">Login</a></p>
+              <p>Dont have an account? <a href="./register.html">Register</a></p>
             </div>
           </div>
         </form>
@@ -85,5 +85,8 @@
       </div>
     </main>
   </body>
-  <script src="../src/main.js"></script>
+
+  <script type="module" src="../dist/login.js" defer></script>
 </html>
+
+

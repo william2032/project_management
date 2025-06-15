@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Body,
   Controller,
@@ -8,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
@@ -67,6 +69,18 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard) // Only requires valid JWT, not admin
+  getCurrentUser(
+    @Request() req: { user: { userId: number; email: string; role: string } },
+  ) {
+    return {
+      id: req.user.userId,
+      email: req.user.email,
+      role: req.user.role,
+    };
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -89,5 +103,11 @@ export class UsersController {
   @Roles('admin')
   async deleteUser(@Param('id') id: string): Promise<DeleteResponse> {
     return this.usersService.delete(+id);
+  }
+
+  @Get(':id/projects')
+  @UseGuards(JwtAuthGuard)
+  async getUserProjects(@Param('id') id: string) {
+    return this.usersService.getUserProjects(+id);
   }
 }
