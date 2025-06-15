@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
-import { CreateProjectDto, UpdateProjectDto, AssignProjectDto } from './dto/project.dto';
+import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -47,11 +47,5 @@ export class ProjectsController {
   @Roles('admin')
   remove(@Param('id') id: string) {
     return this.projectsService.remove(+id);
-  }
-
-  @Post('assign')
-  @Roles('admin')
-  assignProject(@Body() assignProjectDto: AssignProjectDto) {
-    return this.projectsService.assignProject(assignProjectDto);
   }
 }

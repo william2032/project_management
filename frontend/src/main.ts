@@ -1,3 +1,6 @@
+// Add debug logs at the start of the file
+console.log('Script loaded successfully');
+
 // Define User interface locally since Prisma client is not available in frontend
 interface User {
   id: number;
@@ -8,7 +11,43 @@ interface User {
   profileImage?: string | null;
 }
 
+// Admin functionality
+interface Project {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+  assignedTo?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
+// Global logout function
+function handleLogout(e?: Event) {
+  if (e) {
+    e.preventDefault();
+  }
+  
+  // Clear stored data
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  
+  // Optional: Clear session storage too
+  sessionStorage.clear();
+  
+  // Redirect to login page
+  window.location.href = 'login.html';
+}
+
+// Initialize logout button when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+  const logoutButton = document.getElementById('logout');
+  if (logoutButton) {
+    logoutButton.addEventListener('click', handleLogout);
+  }
+
   // Get all sidebar list items
   const sidebarItems = document.querySelectorAll('.sidebar li');
 
@@ -68,16 +107,25 @@ function showResponse(message: string, isError = false) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM Content Loaded');
+  console.log('Checking for forms...');
+  
   const registerForm = document.getElementById('registerForm') as HTMLFormElement;
   const loginForm = document.getElementById('loginForm') as HTMLFormElement;
   
+  console.log('Register form found:', !!registerForm);
+  console.log('Login form found:', !!loginForm);
+  
   // Initialize dashboard if on admin page
   if (document.querySelector('.dashboard-section')) {
+    console.log('Dashboard section found, initializing...');
     fetchAndDisplayUsers();
   }
   
   if (loginForm) {
+    console.log('Adding login form submit listener');
     loginForm.addEventListener('submit', async (e: Event) => {
+        console.log('Login form submitted');
         e.preventDefault();
         
         const formData = new FormData(loginForm);
@@ -92,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             console.log('3. Sending request to backend...');
-            const response = await fetch('http://localhost:3000/users/login', {
+            const response = await fetch('http://localhost:3000/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -191,26 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {
       return false;
     }
-  }
-
-  const logoutButton = document.getElementById('logout');
-    
-  if (logoutButton) {
-    logoutButton.addEventListener('click', function(e) {
-      e.preventDefault();
-      
-      // Clear stored data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Optional: Clear session storage too
-      sessionStorage.clear();
-      
-      alert('Logged out successfully!');
-      
-      // Redirect to login page
-      window.location.href = 'login.html';
-    });
   }
 
   // Initialize buttons and event listeners
@@ -391,51 +419,293 @@ function displayProjects(projects: any[]) {
   });
 }
 
-async function addProject(event: Event) {
-  event.preventDefault();
-  const form = event.target as HTMLFormElement;
-  const formData = new FormData(form);
+// Handle form submission
+function handleFormSubmit(e: Event) {
+  e.preventDefault();
   
-  const projectData = {
-    title: formData.get('title'),
-    description: formData.get('description')
-  };
+  const titleInput = document.getElementById('title') as HTMLInputElement;
+  const descriptionInput = document.getElementById('description') as HTMLTextAreaElement;
+  
+  if (!titleInput || !descriptionInput) {
+    console.error('Form elements not found');
+    return;
+  }
 
+  const title = titleInput.value.trim();
+  const description = descriptionInput.value.trim();
+  
+  if (!title || !description) {
+    alert('Please fill in all required fields');
+    return;
+  }
+
+  // Call the async function
+  createProject(title, description);
+}
+
+// Async function to create project
+async function createProject(title: string, description: string) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You need to login first');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const response = await fetch('http://localhost:3000/projects', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        status: 'in_progress'
+      })
+    });
+
+    if (response.status === 401) {
+      alert('Your session has expired. Please login again.');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create project: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('Project created:', data);
+    
+    // Clear form
+    const titleInput = document.getElementById('title') as HTMLInputElement;
+    const descriptionInput = document.getElementById('description') as HTMLTextAreaElement;
+    if (titleInput && descriptionInput) {
+      titleInput.value = '';
+      descriptionInput.value = '';
+    }
+    
+    // Reload projects
+    await loadProjects();
+    
+    // Show success message
+    alert('Project created successfully!');
+    
+    // Switch to projects section
+    const projectsSection = document.querySelector('.projects-section') as HTMLElement;
+    const addProjectSection = document.querySelector('.add-project-section') as HTMLElement;
+    if (projectsSection && addProjectSection) {
+      projectsSection.style.display = 'block';
+      addProjectSection.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Error creating project:', error);
+    alert('Failed to create project. Please try again.');
+  }
+}
+
+// Make functions available globally
+export {};
+
+declare global {
+  interface Window {
+    editProject: (id: number) => Promise<void>;
+    deleteProject: (id: number) => Promise<void>;
+    closeEditForm: () => void;
+  }
+}
+
+// Load projects functionality
+async function loadProjects(): Promise<void> {
   const token = localStorage.getItem('token');
   if (!token) {
-    alert('You need to login first');
     window.location.href = 'login.html';
     return;
   }
 
   try {
     const response = await fetch('http://localhost:3000/projects', {
-      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(projectData)
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     if (response.status === 401) {
-      handleSessionExpired();
+      window.location.href = 'login.html';
       return;
     }
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Failed to load projects: ${errorText}`);
     }
 
-    alert('Project added successfully!');
-    form.reset();
-    fetchAndDisplayProjects();
+    const projects: Project[] = await response.json();
+    const projectsList = document.getElementById('projectsList');
+    if (!projectsList) return;
+
+    projectsList.innerHTML = projects
+      .map(
+        (project) => `
+        <div class="project-card" data-project-id="${project.id}">
+          <h3>${project.title}</h3>
+          <p>${project.description}</p>
+          <p>Status: ${project.status}</p>
+          <div class="project-actions">
+            <button class="edit-btn" data-project-id="${project.id}">Edit</button>
+            <button class="delete-btn" data-project-id="${project.id}">Delete</button>
+          </div>
+        </div>
+      `
+      )
+      .join('');
+
+    // Add event listeners to buttons
+    projectsList.querySelectorAll('.edit-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const projectId = button.getAttribute('data-project-id');
+        if (projectId) {
+          editProject(parseInt(projectId));
+        }
+      });
+    });
+
+    projectsList.querySelectorAll('.delete-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const projectId = button.getAttribute('data-project-id');
+        if (projectId) {
+          deleteProject(parseInt(projectId));
+        }
+      });
+    });
   } catch (error) {
-    console.error('Error adding project:', error);
-    alert('Error adding project. Check console for details.');
+    console.error('Error loading projects:', error);
+    alert('Failed to load projects. Please refresh the page.');
   }
 }
 
+// Edit project functionality
+async function editProject(id: number) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You need to login first');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Get current project data
+    const response = await fetch(`http://localhost:3000/projects/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch project details');
+    }
+
+    const project = await response.json();
+
+    // Create and show edit form
+    const editForm = document.createElement('div');
+    editForm.className = 'edit-form-overlay';
+    editForm.innerHTML = `
+      <div class="edit-form">
+        <h2>Edit Project</h2>
+        <form id="editProjectForm">
+          <div class="form-group">
+            <label for="editTitle">Title</label>
+            <input type="text" id="editTitle" name="title" value="${project.title}" required>
+          </div>
+          <div class="form-group">
+            <label for="editDescription">Description</label>
+            <textarea id="editDescription" name="description" required>${project.description}</textarea>
+          </div>
+          <div class="form-group">
+            <label for="editStatus">Status</label>
+            <select id="editStatus" name="status">
+              <option value="in_progress" ${project.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+              <option value="completed" ${project.status === 'completed' ? 'selected' : ''}>Completed</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="save-btn">Save Changes</button>
+            <button type="button" class="cancel-btn">Cancel</button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(editForm);
+
+    // Add event listeners
+    const form = editForm.querySelector('#editProjectForm') as HTMLFormElement;
+    const cancelBtn = editForm.querySelector('.cancel-btn') as HTMLButtonElement;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const updatedProject = {
+        title: (document.getElementById('editTitle') as HTMLInputElement).value,
+        description: (document.getElementById('editDescription') as HTMLTextAreaElement).value,
+        status: (document.getElementById('editStatus') as HTMLSelectElement).value
+      };
+
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.role !== 'admin') {
+          alert('You need admin privileges to update projects');
+          return;
+        }
+
+        console.log('Updating project with data:', updatedProject);
+        const updateResponse = await fetch(`http://localhost:3000/projects/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(updatedProject)
+        });
+
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text();
+          console.error('Update failed with response:', errorText);
+          throw new Error(`Failed to update project: ${errorText}`);
+        }
+
+        const updatedData = await updateResponse.json();
+        console.log('Project updated successfully:', updatedData);
+
+        closeEditForm();
+        await loadProjects();
+        alert('Project updated successfully!');
+      } catch (error) {
+        console.error('Error updating project:', error);
+        alert('Failed to update project. Please try again.');
+      }
+    });
+
+    cancelBtn.addEventListener('click', closeEditForm);
+  } catch (error) {
+    console.error('Error editing project:', error);
+    alert('Failed to load project details. Please try again.');
+  }
+}
+
+// Close edit form
+function closeEditForm() {
+  const overlay = document.querySelector('.edit-form-overlay');
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+// Delete project functionality
 async function deleteProject(id: number) {
   if (!confirm('Are you sure you want to delete this project?')) return;
 
@@ -456,95 +726,155 @@ async function deleteProject(id: number) {
     });
 
     if (response.status === 401) {
-      handleSessionExpired();
+      alert('Your session has expired. Please login again.');
+      window.location.href = 'login.html';
       return;
     }
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Failed to delete project: ${errorText}`);
     }
 
     alert('Project deleted successfully!');
-    fetchAndDisplayProjects();
+    await loadProjects();
   } catch (error) {
     console.error('Error deleting project:', error);
-    alert('Error deleting project. Check console for details.');
+    alert('Failed to delete project. Please try again.');
   }
 }
 
-async function assignProject(projectId: number) {
+async function loadUsers(): Promise<void> {
   const token = localStorage.getItem('token');
   if (!token) {
-    alert('You need to login first');
     window.location.href = 'login.html';
     return;
   }
 
   try {
-    // First fetch users to show in dropdown
-    const usersResponse = await fetch('http://localhost:3000/users', {
+    const response = await fetch('http://localhost:3000/users', {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${token}`
       }
     });
-
-    if (!usersResponse.ok) {
-      throw new Error(`HTTP error! status: ${usersResponse.status}`);
+    if (!response.ok) {
+      if (response.status === 401) {
+        window.location.href = 'login.html';
+        return;
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+    const users: User[] = await response.json();
+    const userSelect = document.getElementById('userSelect') as HTMLSelectElement;
+    if (!userSelect) return;
 
-    const users = await usersResponse.json();
-    const availableUsers = users.filter((user: any) => !user.project);
+    userSelect.innerHTML = users
+      .map(
+        (user) => `
+        <option value="${user.id}">${user.name} (${user.email})</option>
+      `
+      )
+      .join('');
+  } catch (error) {
+    console.error('Error loading users:', error);
+  }
+}
 
-    if (availableUsers.length === 0) {
-      alert('No available users to assign!');
-      return;
-    }
+// Initialize admin functionality
+function initializeAdmin(): void {
+  console.log('Initializing admin functionality');
+  const token = localStorage.getItem('token');
+  console.log('Current token in admin init:', token);
 
-    const userId = prompt('Enter user ID to assign:');
-    if (!userId) return;
+  // Load initial data
+  loadProjects();
+  loadUsers();
+}
 
-    const response = await fetch('http://localhost:3000/projects/assign', {
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM loaded, checking for forms');
+  
+  // Add form submit handler
+  const addProjectForm = document.getElementById('addProjectForm');
+  if (addProjectForm) {
+    console.log('Add project form found, adding submit listener');
+    addProjectForm.addEventListener('submit', handleFormSubmit);
+  } else {
+    console.log('Add project form not found');
+  }
+  
+  // Initialize admin functionality
+  initializeAdmin();
+});
+
+// Login functionality
+async function handleLogin(event: Event): Promise<void> {
+  event.preventDefault();
+  const form = event.target as HTMLFormElement;
+  
+  const email = (form.querySelector('#loginEmail') as HTMLInputElement).value;
+  const password = (form.querySelector('#loginPassword') as HTMLInputElement).value;
+
+  console.log('=== LOGIN DEBUG START ===');
+  console.log('1. Attempting login with email:', email);
+  console.log('2. Password provided:', !!password);
+
+  try {
+    console.log('3. Sending request to backend...');
+    const response = await fetch('http://localhost:3000/auth/login', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        projectId,
-        userId: parseInt(userId)
-      })
+      body: JSON.stringify({ email, password }),
     });
 
-    if (response.status === 401) {
-      handleSessionExpired();
+    console.log('4. Response status:', response.status);
+    console.log('5. Response ok:', response.ok);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('6. Login failed with response:', errorText);
+      throw new Error('Login failed: ' + errorText);
+    }
+
+    const data = await response.json();
+    console.log('7. Login response:', data);
+    console.log('8. User role:', data.user?.role);
+    console.log('9. Access token exists:', !!data.access_token);
+    console.log('10. Access token preview:', data.access_token ? data.access_token.substring(0, 20) + '...' : 'none');
+
+    if (data.user?.role !== 'admin') {
+      console.log('11. User is not an admin');
+      alert('You need admin privileges to access this page');
       return;
     }
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to assign project');
-    }
+    // Store the token
+    localStorage.setItem('token', data.access_token);
+    console.log('12. Token stored in localStorage');
+    
+    // Store user info if needed
+    localStorage.setItem('user', JSON.stringify(data.user));
+    console.log('13. User info stored in localStorage');
 
-    alert('Project assigned successfully!');
-    fetchAndDisplayProjects();
+    // Verify storage
+    const storedToken = localStorage.getItem('token');
+    console.log('14. Stored token matches:', storedToken === data.access_token);
+    console.log('15. Stored token preview:', storedToken ? storedToken.substring(0, 20) + '...' : 'none');
+
+    console.log('=== LOGIN DEBUG SUCCESS ===');
+    
+    // Redirect to admin page
+    window.location.href = 'admin.html';
   } catch (error) {
-    console.error('Error assigning project:', error);
-    alert('Error assigning project. Check console for details.');
+    console.error('=== LOGIN DEBUG ERROR ===');
+    console.error('Error details:', error);
+    alert('Login failed. Please check your credentials.');
   }
 }
 
-// Initialize project form
-const addProjectForm = document.getElementById('addProjectForm');
-if (addProjectForm) {
-  addProjectForm.addEventListener('submit', addProject);
-}
 
-// Fetch projects when projects section is shown
-document.addEventListener('DOMContentLoaded', () => {
-  const projectsSection = document.querySelector('.projects-section');
-  if (projectsSection) {
-    fetchAndDisplayProjects();
-  }
-});
+
 
