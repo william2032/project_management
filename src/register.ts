@@ -1,5 +1,5 @@
 // register.ts
-const API_URL = 'http://localhost:3000/auth';
+const REGISTER_API_URL = 'http://localhost:3000/auth';
 
 document.addEventListener('DOMContentLoaded', function() {
   const registerForm = document.getElementById('registerForm') as HTMLFormElement;
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
       };
 
       try {
-        const response = await fetch(`${API_URL}/register`, {
+        const response = await fetch(`${REGISTER_API_URL}/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -13,10 +13,12 @@ interface User {
 
 // Admin functionality
 interface Project {
+  assignedAt: string;
   id: number;
   title: string;
   description: string;
   status: string;
+  completedAt?: string;
   assignedTo?: {
     id: number;
     name: string;
@@ -28,13 +30,12 @@ interface Project {
 function handleLogout(e?: Event) {
   if (e) {
     e.preventDefault();
+    e.stopPropagation(); // Add this to prevent any parent event handlers
   }
   
-  // Clear stored data
+  // Clear all authentication data
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  
-  // Optional: Clear session storage too
   sessionStorage.clear();
   
   // Redirect to login page
@@ -46,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const logoutButton = document.getElementById('logout');
   if (logoutButton) {
     logoutButton.addEventListener('click', handleLogout);
+    console.log('Logout button initialized');
   }
 
   // Get all sidebar list items
@@ -224,7 +226,7 @@ async function fetchAndDisplayUsers() {
     });
     
     console.log('Response status:', response.status);
-    console.log('Response headers:', [...response.headers.entries()]);
+    
     
     // Handle 401 specifically
     if (response.status === 401) {
@@ -270,19 +272,128 @@ function displayUsers(users: User[]) {
     return;
   }
 
-  // Clear existing table rows
+  // Clear existing content
   usersTable.innerHTML = '';
 
-  // Populate table with user data
+  // Create a container for user cards
+  const usersContainer = document.createElement('div');
+  usersContainer.className = 'users-container';
+
+  // Populate container with user cards
   users.forEach(user => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${user.name}</td>
-      <td>${user.email}</td>
-      <td>${user.role}</td>
+    const card = document.createElement('div');
+    card.className = 'user-card';
+    card.innerHTML = `
+      <div class="user-card-header">
+        <div class="user-avatar">
+          <i class="fa-regular fa-user"></i>
+        </div>
+        <div class="user-role ${user.role.toLowerCase()}">
+          ${user.role}
+        </div>
+      </div>
+      <div class="user-card-body">
+        <h3 class="user-name">${user.name}</h3>
+        <p class="user-email">
+          <i class="fa-regular fa-envelope"></i>
+          ${user.email}
+        </p>
+      </div>
+      <div class="user-card-footer">
+        <button class="view-profile-btn" data-user-id="${user.id}">
+          <i class="fa-solid fa-eye"></i>
+          View Profile
+        </button>
+      </div>
     `;
-    usersTable.appendChild(row);
+
+    // Add hover effect class
+    card.classList.add('hover-effect');
+
+    // Add click event for view profile
+    const viewProfileBtn = card.querySelector('.view-profile-btn');
+    if (viewProfileBtn) {
+      viewProfileBtn.addEventListener('click', () => {
+        viewUserProfile(user.id);
+      });
+    }
+
+    usersContainer.appendChild(card);
   });
+
+  // Add the container to the page
+  usersTable.appendChild(usersContainer);
+}
+
+// Add function to view user profile
+async function viewUserProfile(userId: number) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const response = await fetch(`http://localhost:3000/users/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user details');
+    }
+
+    const user = await response.json();
+
+    // Create and show profile modal
+    const modal = document.createElement('div');
+    modal.className = 'modal show';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>User Profile</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="user-profile">
+            <div class="profile-avatar">
+              <i class="fa-regular fa-user"></i>
+            </div>
+            <div class="profile-info">
+              <h3>${user.name}</h3>
+              <p><i class="fa-regular fa-envelope"></i> ${user.email}</p>
+              <p><i class="fa-solid fa-user-tag"></i> ${user.role}</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-close">Close</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Add event listeners for modal close
+    const closeButtons = modal.querySelectorAll('.close-modal, .btn-close');
+    closeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        modal.remove();
+      });
+    });
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  } catch (error) {
+    console.error('Error viewing user profile:', error);
+    alert('Failed to load user profile. Please try again.');
+  }
 }
 
 // Project Management Functions
@@ -425,8 +536,13 @@ async function createProject(title: string, description: string) {
       descriptionInput.value = '';
     }
     
-    // Reload projects
-    await loadProjects();
+    // Reload all project-related data
+    console.log('Reloading project data...');
+    await Promise.all([
+      loadProjects(),
+      loadProjectsIntoSelect(),
+      updateDashboardCounts()
+    ]);
     
     // Show success message
     alert('Project created successfully!');
@@ -460,6 +576,7 @@ async function loadProjects(): Promise<void> {
   console.log('=== LOAD PROJECTS START ===');
   const token = localStorage.getItem('token');
   if (!token) {
+    console.error('No token found, redirecting to login');
     window.location.href = 'login.html';
     return;
   }
@@ -467,15 +584,21 @@ async function loadProjects(): Promise<void> {
   try {
     console.log('1. Fetching projects...');
     const response = await fetch('http://localhost:3000/projects', {
+      method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
     });
 
     console.log('2. Response status:', response.status);
     console.log('3. Response ok:', response.ok);
 
     if (response.status === 401) {
+      console.error('Unauthorized access, redirecting to login');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = 'login.html';
       return;
     }
@@ -490,30 +613,35 @@ async function loadProjects(): Promise<void> {
     console.log('5. Projects loaded:', projects.length);
     console.log('6. Projects data:', JSON.stringify(projects, null, 2));
 
+    // Display regular projects
     const projectsList = document.getElementById('projectsList');
     if (!projectsList) {
       console.error('7. Projects list element not found');
       return;
     }
 
-    projectsList.innerHTML = projects
+    // Filter active projects
+    const activeProjects = projects.filter((project: Project) => project.status !== 'completed');
+    console.log('8. Active projects:', activeProjects.length);
+
+    projectsList.innerHTML = activeProjects
       .map(
         (project: Project) => `
-        <div class="project-card" data-project-id="${project.id}">
-          <h3>${project.title}</h3>
-          <p>${project.description}</p>
-          <p>Status: ${project.assignedTo ? 'In Progress' : 'Not Assigned'}</p>
-          <p>Assigned to: ${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</p>
-          <div class="project-actions">
-            <button class="edit-btn" data-project-id="${project.id}">Edit</button>
-            <button class="delete-btn" data-project-id="${project.id}">Delete</button>
+          <div class="project-card" data-project-id="${project.id}">
+            <h3>${project.title}</h3>
+            <p>${project.description}</p>
+            <p>Status: ${project.assignedTo ? 'In Progress' : 'Not Assigned'}</p>
+            <p>Assigned to: ${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</p>
+            <div class="project-actions">
+              <button class="edit-btn" data-project-id="${project.id}">Edit</button>
+              <button class="delete-btn" data-project-id="${project.id}">Delete</button>
+            </div>
           </div>
-        </div>
-      `
+        `
       )
       .join('');
 
-    console.log('8. Projects rendered to DOM');
+    console.log('9. Active projects rendered to DOM');
 
     // Add event listeners to buttons
     projectsList.querySelectorAll('.edit-btn').forEach(button => {
@@ -534,12 +662,33 @@ async function loadProjects(): Promise<void> {
       });
     });
 
-    console.log('9. Event listeners added');
+    // Display completed projects
+    displayCompletedProjects(projects);
+
+    // Update dashboard counts
+    await updateDashboardCounts(projects);
+
+    console.log('10. All projects loaded and displayed successfully');
     console.log('=== LOAD PROJECTS END ===');
   } catch (error) {
     console.error('=== LOAD PROJECTS ERROR ===');
     console.error('Error details:', error);
-    alert('Failed to load projects. Please refresh the page.');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    
+    // Show error message to user
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'error-message';
+    errorMessage.innerHTML = `
+      <i class="fa-solid fa-exclamation-triangle"></i>
+      <p>Failed to load projects. Please try again.</p>
+      <button onclick="window.location.reload()">Refresh Page</button>
+    `;
+    document.body.appendChild(errorMessage);
+    
+    // Remove error message after 5 seconds
+    setTimeout(() => {
+      errorMessage.remove();
+    }, 5000);
   }
 }
 
@@ -700,8 +849,9 @@ async function deleteProject(id: number) {
   }
 }
 
-// Add function to load projects into select
+// Update loadProjectsIntoSelect function to allow reassignment after completion
 async function loadProjectsIntoSelect(): Promise<void> {
+  console.log('Loading projects into select...');
   const token = localStorage.getItem('token');
   if (!token) {
     window.location.href = 'login.html';
@@ -711,7 +861,8 @@ async function loadProjectsIntoSelect(): Promise<void> {
   try {
     const response = await fetch('http://localhost:3000/projects', {
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
     });
 
@@ -724,26 +875,56 @@ async function loadProjectsIntoSelect(): Promise<void> {
     }
 
     const projects = await response.json();
+    console.log('Total projects loaded:', projects.length);
+    
     const projectSelect = document.getElementById('projectSelect') as HTMLSelectElement;
-    if (!projectSelect) return;
+    if (!projectSelect) {
+      console.error('Project select element not found');
+      return;
+    }
 
-    // Filter out already assigned projects
-    const unassignedProjects = projects.filter((project: Project) => !project.assignedTo);
+    // Filter out only currently assigned projects (not completed ones)
+    const availableProjects = projects.filter((project: Project) => {
+      const isAvailable = !project.assignedTo || project.status === 'completed';
+      console.log(`Project ${project.title}: assigned=${!!project.assignedTo}, status=${project.status}, available=${isAvailable}`);
+      return isAvailable;
+    });
+    
+    console.log('Available projects for assignment:', availableProjects.length);
 
-    projectSelect.innerHTML = `
-      <option value="">Select a project...</option>
-      ${unassignedProjects.map((project: Project) => `
-        <option value="${project.id}">${project.title}</option>
-      `).join('')}
-    `;
+    // Store current selection
+    const currentValue = projectSelect.value;
+
+    // Update options
+    if (availableProjects.length === 0) {
+      projectSelect.innerHTML = `
+        <option value="">No available projects to assign</option>
+      `;
+      projectSelect.disabled = true;
+    } else {
+      projectSelect.innerHTML = `
+        <option value="">Select a project...</option>
+        ${availableProjects.map((project: Project) => `
+          <option value="${project.id}">${project.title}</option>
+        `).join('')}
+      `;
+      projectSelect.disabled = false;
+    }
+
+    // Restore selection if possible
+    if (currentValue) {
+      projectSelect.value = currentValue;
+    }
 
     // Update project count in dashboard
     const projectCountElement = document.querySelector('.card-total:nth-child(1) h1');
     if (projectCountElement) {
       projectCountElement.textContent = projects.length.toString();
     }
+
+    console.log('Projects loaded into select successfully');
   } catch (error) {
-    console.error('Error loading projects:', error);
+    console.error('Error loading projects into select:', error);
   }
 }
 
@@ -787,26 +968,48 @@ async function loadUsers(): Promise<void> {
   }
 }
 
-// Update initializeAdmin function to add form submit handler
+// Update initializeAdmin function
 function initializeAdmin(): void {
   console.log('Initializing admin functionality');
   const token = localStorage.getItem('token');
   console.log('Current token in admin init:', token);
 
-  // Add form submit handler
-  const assignProjectForm = document.getElementById('assignProjectForm');
-  if (assignProjectForm) {
-    console.log('Assign project form found, adding submit listener');
-    assignProjectForm.addEventListener('submit', handleAssignProjectForm);
-  } else {
-    console.log('Assign project form not found');
+  if (!token) {
+    console.error('No token found in admin init');
+    window.location.href = 'login.html';
+    return;
   }
 
-  // Load initial data
-  loadProjects();
-  loadUsers();
-  loadProjectsIntoSelect();
-  updateDashboardCounts();
+  try {
+    // Add form submit handler
+    const assignProjectForm = document.getElementById('assignProjectForm');
+    if (assignProjectForm) {
+      console.log('Assign project form found, adding submit listener');
+      assignProjectForm.addEventListener('submit', handleAssignProjectForm);
+    } else {
+      console.log('Assign project form not found');
+    }
+
+    // Load initial data
+    console.log('Loading initial data...');
+    loadProjects().catch(error => {
+      console.error('Error loading projects:', error);
+    });
+    
+    loadUsers().catch(error => {
+      console.error('Error loading users:', error);
+    });
+    
+    loadProjectsIntoSelect().catch(error => {
+      console.error('Error loading projects into select:', error);
+    });
+    
+    updateDashboardCounts().catch(error => {
+      console.error('Error updating dashboard counts:', error);
+    });
+  } catch (error) {
+    console.error('Error in initializeAdmin:', error);
+  }
 }
 
 // Login functionality
@@ -817,12 +1020,7 @@ async function handleLogin(event: Event): Promise<void> {
   const email = (form.querySelector('#loginEmail') as HTMLInputElement).value;
   const password = (form.querySelector('#loginPassword') as HTMLInputElement).value;
 
-  console.log('=== LOGIN DEBUG START ===');
-  console.log('1. Attempting login with email:', email);
-  console.log('2. Password provided:', !!password);
-
   try {
-    console.log('3. Sending request to backend...');
     const response = await fetch('http://localhost:3000/auth/login', {
       method: 'POST',
       headers: {
@@ -831,52 +1029,30 @@ async function handleLogin(event: Event): Promise<void> {
       body: JSON.stringify({ email, password }),
     });
 
-    console.log('4. Response status:', response.status);
-    console.log('5. Response ok:', response.ok);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('6. Login failed with response:', errorText);
       throw new Error('Login failed: ' + errorText);
     }
 
     const data = await response.json();
-    console.log('7. Login response:', data);
-    console.log('8. User role:', data.user?.role);
-    console.log('9. Access token exists:', !!data.access_token);
-    console.log('10. Access token preview:', data.access_token ? data.access_token.substring(0, 20) + '...' : 'none');
-
-    if (data.user?.role !== 'admin') {
-      console.log('11. User is not an admin');
-      alert('You need admin privileges to access this page');
-      return;
-    }
-
-    // Store the token
+    
+    // Store the token and user data
     localStorage.setItem('token', data.access_token);
-    console.log('12. Token stored in localStorage');
-    
-    // Store user info if needed
     localStorage.setItem('user', JSON.stringify(data.user));
-    console.log('13. User info stored in localStorage');
 
-    // Verify storage
-    const storedToken = localStorage.getItem('token');
-    console.log('14. Stored token matches:', storedToken === data.access_token);
-    console.log('15. Stored token preview:', storedToken ? storedToken.substring(0, 20) + '...' : 'none');
-
-    console.log('=== LOGIN DEBUG SUCCESS ===');
-    
-    // Redirect to admin page
-    window.location.href = 'admin.html';
+    // Redirect based on user role
+    if (data.user?.role === 'admin') {
+      window.location.href = 'admin.html';
+    } else {
+      window.location.href = 'user.html';
+    }
   } catch (error) {
-    console.error('=== LOGIN DEBUG ERROR ===');
-    console.error('Error details:', error);
+    console.error('Login error:', error);
     alert('Login failed. Please check your credentials.');
   }
 }
 
-// Add function to handle assign project form submission
+// Update handleAssignProjectForm to refresh the select after assignment
 async function handleAssignProjectForm(event: Event) {
   event.preventDefault();
   console.log('=== ASSIGN PROJECT FORM SUBMIT ===');
@@ -936,9 +1112,13 @@ async function handleAssignProjectForm(event: Event) {
     projectSelect.value = '';
     userSelect.value = '';
     
-    // Reload projects and update counts
-    await loadProjects();
-    await updateDashboardCounts();
+    // Reload all project-related data
+    console.log('7. Reloading project data...');
+    await Promise.all([
+      loadProjects(),
+      loadProjectsIntoSelect(),
+      updateDashboardCounts()
+    ]);
     
     alert('Project assigned successfully!');
   } catch (error) {
@@ -947,35 +1127,47 @@ async function handleAssignProjectForm(event: Event) {
   }
 }
 
-// Add function to update dashboard counts
-async function updateDashboardCounts(): Promise<void> {
+// Update the updateDashboardCounts function
+async function updateDashboardCounts(projects?: Project[]): Promise<void> {
   const token = localStorage.getItem('token');
   if (!token) return;
 
   try {
-    const response = await fetch('http://localhost:3000/projects', {
-      headers: {
-        'Authorization': `Bearer ${token}`
+    let projectsData: Project[] = [];
+    if (!projects) {
+      const response = await fetch('http://localhost:3000/projects', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch projects');
       }
-    });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch projects');
+      projectsData = await response.json();
+    } else {
+      projectsData = projects;
     }
-
-    const projects = await response.json();
     
     // Update total projects count
     const totalProjectsElement = document.querySelector('.card-total:nth-child(1) h1');
     if (totalProjectsElement) {
-      totalProjectsElement.textContent = projects.length.toString();
+      totalProjectsElement.textContent = projectsData.length.toString();
     }
 
     // Update assigned projects count
-    const assignedProjects = projects.filter((project: Project) => project.assignedTo);
+    const assignedProjects = projectsData.filter((project: Project) => project.assignedTo);
     const assignedProjectsElement = document.querySelector('.card-total:nth-child(3) h1');
     if (assignedProjectsElement) {
       assignedProjectsElement.textContent = assignedProjects.length.toString();
+    }
+
+    // Update completed projects count
+    const completedProjects = projectsData.filter((project: Project) => project.status === 'completed');
+    const completedProjectsElement = document.querySelector('.card-total:nth-child(4) h1');
+    if (completedProjectsElement) {
+      completedProjectsElement.textContent = completedProjects.length.toString();
     }
   } catch (error) {
     console.error('Error updating dashboard counts:', error);
@@ -1029,5 +1221,223 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+function initializeUserDashboard() {
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  if (!token) {
+    window.location.href = 'login.html';
+    return;
+  }
 
+  // Update the UI with user's name
+  const userNameElement = document.querySelector('.right h4');
+  if (userNameElement && user.name) {
+    userNameElement.textContent = user.name;
+  }
 
+  // Initialize logout button - THIS IS THE CRUCIAL PART
+  const logoutButton = document.getElementById('logout');
+  if (logoutButton) {
+    logoutButton.addEventListener('click', handleLogout);
+    console.log('Logout button initialized'); // For debugging
+  } else {
+    console.error('Logout button not found'); // For debugging
+  }
+
+  // Load user-specific content
+  if (user.id) {
+    loadUserProjects(user.id);
+  }
+}
+
+async function loadUserProjects(userId: number) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`http://localhost:3000/users/${userId}/projects`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      const projects = await response.json();
+      // Display the projects in the user dashboard
+      displayProjects(projects);
+    }
+  } catch (error) {
+    console.error('Error loading user projects:', error);
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  // Check which page we're on
+  if (document.querySelector('.dashboard-section')) {
+    // Admin dashboard
+    initializeAdmin();
+  } else if (document.querySelector('.content')) {
+    // User dashboard
+    initializeUserDashboard();
+  }
+
+  // Common initialization (login/register forms, etc.)
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleLogin(e);
+    });
+  }
+});
+
+// Update displayCompletedProjects function to show more details
+function displayCompletedProjects(projects: Project[]) {
+  const completedProjectsList = document.getElementById('completedProjectsList');
+  if (!completedProjectsList) return;
+
+  // Filter completed projects
+  const completedProjects = projects.filter(project => project.status === 'completed');
+  console.log('Completed projects:', completedProjects.length);
+
+  if (completedProjects.length === 0) {
+    completedProjectsList.innerHTML = `
+      <div class="no-projects">
+        <i class="fa-regular fa-calendar-check"></i>
+        <p>No completed projects yet</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Sort completed projects by completion date (newest first)
+  completedProjects.sort((a, b) => {
+    const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+    const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+    return dateB - dateA;
+  });
+
+  completedProjectsList.innerHTML = completedProjects
+    .map(
+      (project: Project) => `
+        <div class="project-card completed" data-project-id="${project.id}">
+          <div class="project-header">
+            <h3>${project.title}</h3>
+            <span class="status completed">Completed</span>
+          </div>
+          <p class="description">${project.description}</p>
+          <div class="project-details">
+            <p><i class="fa-solid fa-user"></i> Completed by: ${project.assignedTo?.name || 'Unknown'}</p>
+            <p><i class="fa-regular fa-calendar-check"></i> Completed on: ${formatDate(project.completedAt || '')}</p>
+            <p><i class="fa-regular fa-calendar"></i> Assigned on: ${formatDate(project.assignedAt || '')}</p>
+          </div>
+          <div class="project-actions">
+            <button class="view-btn" data-project-id="${project.id}">View Details</button>
+          </div>
+        </div>
+
+      `    )
+    .join('');
+
+  // Add event listeners to view buttons
+  completedProjectsList.querySelectorAll('.view-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      const projectId = button.getAttribute('data-project-id');
+      if (projectId) {
+        viewCompletedProjectDetails(parseInt(projectId));
+      }
+    });
+  });
+}
+
+// Add formatDate helper function if not already present
+function formatDate(dateString: string): string {
+  if (!dateString) return 'Not available';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+// Add function to view completed project details
+async function viewCompletedProjectDetails(id: number) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You need to login first');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const response = await fetch(`http://localhost:3000/projects/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch project details');
+    }
+
+    const project = await response.json();
+
+    // Create and show details modal
+    const modal = document.createElement('div');
+    modal.className = 'modal show';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>${project.title}</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="project-info">
+            <div class="info-section">
+              <h3>Description</h3>
+              <p>${project.description}</p>
+            </div>
+            <div class="info-section">
+              <h3>Status</h3>
+              <span class="status completed">Completed</span>
+            </div>
+            <div class="info-section">
+              <h3>Completion Details</h3>
+              <div class="timeline-info">
+                <p><i class="fa-solid fa-user"></i> Completed by: ${project.assignedTo?.name || 'Unknown'}</p>
+                <p><i class="fa-regular fa-calendar-check"></i> Completed on: ${formatDate(project.completedAt || '')}</p>
+                <p><i class="fa-regular fa-calendar"></i> Assigned on: ${formatDate(project.assignedAt || '')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-close">Close</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Add event listeners for modal close
+    const closeButtons = modal.querySelectorAll('.close-modal, .btn-close');
+    closeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        modal.remove();
+      });
+    });
+
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  } catch (error) {
+    console.error('Error viewing completed project:', error);
+    alert('Failed to load project details. Please try again.');
+  }
+}

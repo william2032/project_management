@@ -1,6 +1,0 @@
--- AlterTable
-ALTER TABLE "Project" ALTER COLUMN "title" DROP DEFAULT,
-ALTER COLUMN "updatedAt" DROP DEFAULT;
-
--- AlterTable
-ALTER TABLE "User" ALTER COLUMN "updatedAt" DROP DEFAULT;

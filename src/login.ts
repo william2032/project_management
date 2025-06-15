@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ email, password }),
+          credentials: 'include' // Include cookies in the request
         });
 
         if (!response.ok) {
@@ -22,8 +23,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const data = await response.json();
+        console.log('Login response:', data); // Debug log
+        
+        // Store the token and user data
         localStorage.setItem('token', data.access_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('user', JSON.stringify({
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.name,
+          role: data.user.role
+        }));
+        
+        // Set a cookie with the token as well
+        document.cookie = `token=${data.access_token}; path=/; secure; samesite=strict`;
         
         // Redirect based on role
         if (data.user?.role === 'admin') {

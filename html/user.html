@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/71bcccf63f.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="../styles/style.css">
+    <title>ProjectsPlace - User Dashboard</title>
+</head>
+<body>
+    <nav>
+        <div class="left">
+            <h1>ProjectsPlace</h1>
+        </div>
+        <div class="right">
+            <div class="user-profile">
+                <i class="fa-regular fa-user"></i>
+                <div class="user-info">
+                    <h4 id="usernameDisplay">User</h4>
+                    <span id="userRole">User</span>
+                </div>
+            </div>
+            <div id="logout" class="logout">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <p>logout</p>
+            </div>
+        </div>
+    </nav>
+
+    <div class="parent">
+        <div class="sidebar">
+            <ul>
+                <li class="active" data-section="current-projects">
+                    <i class="fa-solid fa-list-check"></i>
+                    <p>Current Projects</p>
+                </li>
+                <li data-section="completed-projects">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <p>Completed Projects</p>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="content">
+            <div class="welcome-section">
+                <div class="welcome-card">
+                    <h2>Welcome back, <span id="welcomeName">User</span>!</h2>
+                    <p>Here's an overview of your projects</p>
+                </div>
+            </div>
+
+            <div class="current-projects-section section">
+                <div class="section-header">
+                    <h2>Your Current Projects</h2>
+                    <div class="loading-spinner" id="currentProjectsSpinner"></div>
+                </div>
+                <div class="projects-container" id="currentProjectsContainer">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="completed-projects-section section" style="display: none;">
+                <div class="section-header">
+                    <h2>Completed Projects</h2>
+                    <div class="loading-spinner" id="completedProjectsSpinner"></div>
+                </div>
+                <div class="projects-container" id="completedProjectsContainer">
+                    <!-- Completed projects will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Details Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalProjectTitle">Project Details</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="project-info">
+                    <div class="info-section">
+                        <h3>Description</h3>
+                        <p id="modalProjectDescription"></p>
+                    </div>
+                    <div class="info-section">
+                        <h3>Status</h3>
+                        <span id="modalProjectStatus" class="status"></span>
+                    </div>
+                    <div class="info-section">
+                        <h3>Timeline</h3>
+                        <div class="timeline-info">
+                            <p><i class="fa-solid fa-user-tie"></i> Assigned by: <span id="modalProjectAssignedBy"></span></p>
+                            <p><i class="fa-regular fa-calendar"></i> Assigned on: <span id="modalProjectAssignedDate"></span></p>
+                            <p><i class="fa-regular fa-clock"></i> Due date: <span id="modalProjectDueDate"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modalCompleteBtn" class="btn btn-complete" style="display: none;">
+                    <i class="fa-solid fa-check"></i> Mark Complete
+                </button>
+                <button class="btn btn-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../dist/user.js" type="module"></script>
+</body>
+</html>
