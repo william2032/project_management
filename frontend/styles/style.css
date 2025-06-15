@@ -477,6 +477,110 @@ nav .right h4:hover {
 
 .add-project-section button:hover {
   background-color: var(--secondary-color);
+<<<<<<< HEAD:styles/style.css
+=======
+}
+
+.edit-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.edit-form {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.edit-form h2 {
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+.edit-form .form-group {
+  margin-bottom: 20px;
+}
+
+.edit-form label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--primary-color);
+}
+
+.edit-form input,
+.edit-form textarea,
+.edit-form select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.edit-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.edit-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.edit-btn {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.edit-btn:hover {
+  background-color: #0080b3;
+}
+
+.save-btn {
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.save-btn:hover {
+  background-color: #0080b3;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cancel-btn:hover {
+  background-color: #5a6268;
+>>>>>>> 8934c56bef2a5c453d5006d8ba6950012dd25a81:frontend/styles/style.css
 }
 
 .edit-form-overlay {
