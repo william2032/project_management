@@ -1,0 +1,108 @@
+POST http://localhost:3000/users/register
+Content-Type: application/json
+Content-Length: 98
+User-Agent: IntelliJ HTTP Client/WebStorm 2024.3.4
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "name": "Admin",
+  "email": "admin@example.com",
+  "password": "admin123",
+  "role": "ADMIN"
+}
+
+<> 2025-06-14T015645.400.json
+
+###
+
+POST http://localhost:3000/users/register
+Content-Type: application/json
+Content-Length: 98
+User-Agent: IntelliJ HTTP Client/WebStorm 2024.3.4
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "name": "Admin",
+  "email": "admin@example.com",
+  "password": "admin123",
+  "role": "ADMIN"
+}
+
+<> 2025-06-14T015209.201.json
+
+###
+
+POST http://localhost:3000/users/register
+Content-Type: application/json
+Content-Length: 112
+User-Agent: IntelliJ HTTP Client/WebStorm 2024.3.4
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "securePassword123",
+  "role": "USER"
+}
+
+<> 2025-06-14T014518.400.json
+
+###
+
+POST http://localhost:3000/users
+Content-Type: application/json
+Content-Length: 112
+User-Agent: IntelliJ HTTP Client/WebStorm 2024.3.4
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "securePassword123",
+  "role": "USER"
+}
+
+<> 2025-06-14T014508.404.json
+
+###
+
+POST http://localhost:3000/users/register
+Content-Type: application/json
+Content-Length: 112
+User-Agent: IntelliJ HTTP Client/WebStorm 2024.3.4
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "securePassword123",
+  "role": "USER"
+}
+
+<> 2025-06-14T014132.201.json
+
+###
+
+POST http://localhost:3000/users
+Content-Type: application/json
+Content-Length: 112
+User-Agent: IntelliJ HTTP Client/WebStorm 2024.3.4
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "securePassword123",
+  "role": "USER"
+}
+
+<> 2025-06-14T013539.404.json
+
+###
+

@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
@@ -47,5 +48,25 @@ export class ProjectsController {
   @Roles('admin')
   remove(@Param('id') id: string) {
     return this.projectsService.remove(+id);
+  }
+
+  @Patch(':id/assign/:userId')
+  @Roles('admin')
+  async assignProject(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
+  ) {
+    console.log('=== ASSIGNMENT REQUEST ===');
+    console.log('1. Project ID:', id);
+    console.log('2. User ID:', userId);
+    
+    try {
+      const result = await this.projectsService.assignProject(id, userId);
+      console.log('3. Assignment successful:', result);
+      return result;
+    } catch (error) {
+      console.error('4. Assignment failed:', error);
+      throw error;
+    }
   }
 }

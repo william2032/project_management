@@ -51,7 +51,7 @@
         <div class="section dashboard-section" style="display: block">
           <div style="display: block; text-align: center" class="head">
             <h1 style="font-size: 2rem">Dashboard</h1>
-            <p style="font-size: 1.5rem">Projects Hub</p>
+            <p style="font-size: 1.5rem">Projects Place</p>
           </div>
 
           <div class="total">
@@ -83,10 +83,29 @@
                 <h1>2</h1>
                 <div class="down">
                   <i class="fa-solid fa-check"></i>
-                  <p>Completed Projects</p>
+                  <p>Assigned Projects</p>
                 </div>
                 
               </div>
+            </div>
+          </div>
+          <hr>
+          <div class="assign-projects">
+            <h1>Assign Projects</h1>
+            <div id="assignProject" class="assign-project-form">
+              <form id="assignProjectForm">
+                <div class="form-group">
+                  <select id="projectSelect" required>
+                    <option value="">Select a project</option>
+                    <!-- Options will be populated here -->
+                  </select>
+                  <select id="userSelect" required>
+                    <option value="">Select a user</option>
+                    <!-- Options will be populated here -->
+                  </select>
+                </div>
+                <button type="submit">Assign Project</button>
+              </form>
             </div>
           </div>
         </div>
@@ -107,7 +126,7 @@
             </tbody>
           </table>
         </div>
-        <button id="showUsersBtn">show users</button>
+        
 
         <!-- Projects Section -->
         <div class="section projects-section" style="display: none">

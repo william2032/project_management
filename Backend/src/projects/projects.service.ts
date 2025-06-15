@@ -6,10 +6,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  CreateProjectDto,
-  UpdateProjectDto,
-} from './dto/project.dto';
+import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
+import { Project } from 'generated/prisma';
 
 @Injectable()
 export class ProjectsService {
@@ -122,7 +120,7 @@ export class ProjectsService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number): Promise<any> {
     try {
       const project = await this.prisma.project.findUnique({
         where: { id },
@@ -141,6 +139,95 @@ export class ProjectsService {
       }
       console.error('Error deleting project:', error);
       throw new InternalServerErrorException('Failed to delete project');
+    }
+  }
+
+  async assignProject(id: number, userId: number): Promise<any> {
+    try {
+      // Check if project exists
+      const project = await this.prisma.project.findUnique({
+        where: { id },
+      });
+
+      if (!project) {
+        throw new NotFoundException(`Project with ID ${id} not found`);
+      }
+
+      // Check if user is already assigned to another project
+      const existingAssignment = await this.prisma.project.findFirst({
+        where: {
+          userId: userId,
+          id: { not: id }, // Exclude current project
+        },
+      });
+
+      if (existingAssignment) {
+        throw new BadRequestException(
+          'User is already assigned to another project',
+        );
+      }
+
+      return await this.prisma.project.update({
+        where: { id },
+        data: {
+          userId: userId,
+          status: 'in_progress',
+          updatedAt: new Date(),
+        },
+        include: {
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      console.error('Error assigning project:', error);
+      throw new InternalServerErrorException('Failed to assign project');
+    }
+  }
+  async getUserProjects(userId: number): Promise<Project[]> {
+    try {
+      // First verify the user exists
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+
+      // Return projects for this user without admin check
+      return await this.prisma.project.findMany({
+        where: { userId },
+        include: {
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error fetching user projects:', error);
+      throw new InternalServerErrorException('Failed to fetch user projects');
     }
   }
 }

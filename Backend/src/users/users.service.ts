@@ -332,4 +332,35 @@ export class UsersService {
       throw new InternalServerErrorException('Failed to delete user');
     }
   }
+  async getUserProjects(userId: number): Promise<any[]> {
+    try {
+      if (!userId || userId <= 0) {
+        throw new BadRequestException('Valid user ID is required');
+      }
+
+      const projects = await this.prisma.project.findMany({
+        where: { userId },
+        include: {
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      return projects;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.error('Error getting user projects:', error);
+      throw new InternalServerErrorException('Failed to get user projects');
+    }
+  }
 }

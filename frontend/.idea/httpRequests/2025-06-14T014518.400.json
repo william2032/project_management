@@ -1,0 +1,5 @@
+{
+  "message": "Email exists",
+  "error": "Bad Request",
+  "statusCode": 400
+}

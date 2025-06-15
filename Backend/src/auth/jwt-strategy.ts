@@ -1,49 +1,39 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { CustomJwtService } from './jwt.service';
-import { UsersService } from '../users/users.service';
-import { JwtPayload, RequestUser } from './types';
 import { ConfigService } from '@nestjs/config';
+import { Request } from 'express';
+import { JwtPayload } from './types';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(
-    private jwtService: CustomJwtService,
-    private usersService: UsersService,
-    private configService: ConfigService,
-  ) {
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request): string | null => {
+          // Check Authorization header first
+          const authHeader = req.headers.authorization;
+          if (authHeader && authHeader.startsWith('Bearer ')) {
+            return authHeader.substring(7);
+          }
+          // Then check cookies
+          const token = req.cookies?.token;
+          return typeof token === 'string' ? token : null;
+        }
+      ]),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'your-secret-key',
-      passReqToCallback: true,
+      secretOrKey: configService.get<string>('JWT_SECRET') || 'secret-key',
     });
   }
 
-  async validate(request: any, payload: JwtPayload): Promise<RequestUser> {
-    console.log('JWT Strategy - Request headers:', request.headers);
-    console.log('JWT Strategy - Payload:', payload);
-    
-    if (!payload.sub) {
-      console.log('JWT Strategy - No subject in payload');
-      throw new UnauthorizedException('Invalid token payload');
-    }
-
-    const user = await this.usersService.findById(parseInt(payload.sub));
-    console.log('JWT Strategy - Found user:', user);
-    
-    if (!user) {
-      console.log('JWT Strategy - User not found');
-      throw new UnauthorizedException('User not found');
-    }
-
-    if (user.role !== 'admin') {
-      console.log('JWT Strategy - User is not an admin');
-      throw new UnauthorizedException('User is not an admin');
-    }
-    
-    console.log('JWT Strategy - User validated:', user);
+  async validate(payload: JwtPayload) {
+    // Basic validation that works for all authenticated users
+    const user = await Promise.resolve({
+      userId: payload.sub,
+      email: payload.email,
+      role: payload.role,
+    });
     return user;
   }
 }

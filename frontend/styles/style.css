@@ -150,6 +150,9 @@ nav {
   padding: 10px 20px;
   background-color: var(--primary-color);
   height: 50px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 nav .left {
   display: flex;
@@ -232,6 +235,7 @@ nav .right h4:hover {
 .sidebar {
   background-color: var(--primary-color);
   position: sticky;
+  top: 70px;
   border-radius: 10px;
   
   height: 500px;
@@ -575,3 +579,327 @@ nav .right h4:hover {
 .cancel-btn:hover {
   background-color: #5a6268;
 }
+.assign-projects {
+  margin: 20px;
+  padding: 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 10px;
+  box-shadow: -9px 16px 32px -6px rgba(0, 0, 0, 0.1);
+}
+.assign-projects h1 {
+  color: white;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  text-align: center;
+}
+.assign-project-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px;
+  padding: 20px;
+  background-color: #fff;
+  color: var(--primary-color);
+  border-radius: 10px;
+  box-shadow: -9px 16px 32px -6px rgba(0, 0, 0, 0.1);
+}
+.assign-project-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: -9px 16px 32px -6px rgba(0, 0, 0, 0.1);
+}
+.assign-project-form form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+ .assign-project-form form select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-top: 20px;
+  transition: border-color 0.3s ease;
+ }
+ .assign-project-form form button {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+ }
+ .assign-project-form form button:hover {
+  background-color: var(--secondary-color);
+ }
+ /* General Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f7fa;
+  color: #333;
+}
+
+/* Navigation */
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #00415a;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+nav .left h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+nav .right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+nav .right .logout {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+nav .right .logout:hover {
+  color: #009bd6;
+}
+
+
+
+.content {
+  flex: 1;
+  padding: 2rem;
+}
+
+.section {
+  display: none;
+}
+
+.section h2 {
+  color: #00415a;
+  margin-top: 0;
+}
+
+/* Projects Container */
+/* Projects Container */
+.projects-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.project-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.project-card h3 {
+  margin-top: 0;
+  color: #00415a;
+}
+
+.project-card .status {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.status-in-progress {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-completed {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.project-card .description {
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.project-card .due-date {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.project-card .actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-complete {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-complete:hover {
+  background-color: #218838;
+}
+
+.btn-view {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-view:hover {
+  background-color: #5a6268;
+}
+
+/* Loading and Empty States */
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(0, 65, 90, 0.2);
+  border-radius: 50%;
+  border-top-color: #00415a;
+  animation: spin 1s ease-in-out infinite;
+  display: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.no-projects, .error-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.no-projects i, .error-message i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.error-message {
+  color: #dc3545;
+}
+section {
+  display: none;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* User Profile Styles */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 15px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.user-profile:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.user-profile i {
+  font-size: 24px;
+  color: white;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-info h4 {
+  margin: 0;
+  font-size: 16px;
+  color: white;
+}
+
+.user-info span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Welcome Section Styles */
+.welcome-section {
+  margin-bottom: 30px;
+}
+
+.welcome-card {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.welcome-card:hover {
+  transform: translateY(-2px);
+}
+
+.welcome-card h2 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+}
+
+.welcome-card p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Update existing nav styles */
+nav .right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+
+

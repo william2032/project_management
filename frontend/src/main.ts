@@ -28,13 +28,12 @@ interface Project {
 function handleLogout(e?: Event) {
   if (e) {
     e.preventDefault();
+    e.stopPropagation(); // Add this to prevent any parent event handlers
   }
   
-  // Clear stored data
+  // Clear all authentication data
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  
-  // Optional: Clear session storage too
   sessionStorage.clear();
   
   // Redirect to login page
@@ -46,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const logoutButton = document.getElementById('logout');
   if (logoutButton) {
     logoutButton.addEventListener('click', handleLogout);
+    console.log('Logout button initialized');
   }
 
   // Get all sidebar list items
@@ -124,125 +124,53 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (loginForm) {
     console.log('Adding login form submit listener');
-    loginForm.addEventListener('submit', async (e: Event) => {
-        console.log('Login form submitted');
-        e.preventDefault();
-        
-        const formData = new FormData(loginForm);
-        const credentials = {
-            email: formData.get('email') as string,
-            password: formData.get('password') as string
-        };
-        
-        console.log('=== LOGIN DEBUG START ===');
-        console.log('1. Attempting login with email:', credentials.email);
-        console.log('2. Password provided:', !!credentials.password);
-        
-        try {
-            console.log('3. Sending request to backend...');
-            const response = await fetch('http://localhost:3000/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(credentials)
-            });
-            
-            console.log('4. Response status:', response.status);
-            console.log('5. Response ok:', response.ok);
-            
-            if (response.ok) {
-                const result = await response.json();
-                console.log('6. FULL BACKEND RESPONSE:', JSON.stringify(result, null, 2));
-                console.log('7. Access token exists:', !!result.access_token);
-                console.log('8. Access token value:', result.access_token);
-                console.log('9. Access token type:', typeof result.access_token);
-                console.log('10. Access token length:', result.access_token?.length);
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault(); // Ensure this is called first
+      handleLogin(e);
+    });
+  }
 
-                if (!result.access_token) {
-                    console.error('ERROR: No access token in response!');
-                    throw new Error('No access token received');
-                }
+  if (registerForm) {
+    console.log('Adding register form submit listener');
+    registerForm.addEventListener('submit', async (e: Event) => {
+      e.preventDefault();
+      const formData = new FormData(registerForm as HTMLFormElement);
+      const userData = {
+        email: formData.get('email'),
+        name: formData.get('name'),
+        password: formData.get('password')
+      };
 
-                // Check if it's a real JWT (should have 3 parts separated by dots)
-                const tokenParts = result.access_token.split('.');
-                console.log('11. Token parts count:', tokenParts.length);
-                console.log('12. Is valid JWT format:', tokenParts.length === 3);
+      try {
+        const response = await fetch('http://localhost:3000/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(userData)
+        });
 
-                // TEMPORARY FIX: Accept the placeholder token for now
-                // TODO: Fix backend to return real JWT
-                if (result.access_token === 'your-jwt-token') {
-                    console.warn('⚠️  WARNING: Backend returning placeholder token!');
-                    console.warn('⚠️  This should be fixed in production!');
-                }
-
-                // Store the token and user info
-                localStorage.setItem('token', result.access_token);
-                localStorage.setItem('user', JSON.stringify(result.user));
-                
-                // Verify storage worked
-                const storedToken = localStorage.getItem('token');
-                console.log('13. Token stored successfully:', !!storedToken);
-                console.log('14. Stored token matches:', storedToken === result.access_token);
-                console.log('15. Stored token preview:', storedToken?.substring(0, 50) + '...');
-                
-                console.log('=== LOGIN DEBUG SUCCESS ===');
-                alert('Login successful! Check console for debug info.');
-                
-                // Redirect based on role
-                if (result.user && result.user.role === 'admin') {
-                    console.log('Redirecting to admin panel...');
-                    window.location.href = 'admin.html';
-                } else {
-                    console.log('Redirecting to user panel...');
-                    window.location.href = 'user.html';
-                }
-            } else {
-                const error = await response.text();
-                console.error('LOGIN FAILED - Raw response:', error);
-                try {
-                    const jsonError = JSON.parse(error);
-                    console.error('LOGIN FAILED - Parsed error:', jsonError);
-                    alert('Login failed: ' + (jsonError.message || 'Invalid credentials'));
-                } catch {
-                    console.error('LOGIN FAILED - Non-JSON response');
-                    alert('Login failed: Server error');
-                }
-            }
-        } catch (error) {
-            console.error('=== LOGIN NETWORK ERROR ===');
-            console.error('Error details:', error);
-            alert('Network error. Please try again.');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Registration failed');
         }
+
+        const data = await response.json();
+        showResponse('Registration successful! Redirecting to login...', false);
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 2000);
+      } catch (error) {
+        console.error('Registration error:', error);
+        showResponse(error instanceof Error ? error.message : 'Registration failed. Please try again.', true);
+      }
     });
   }
   
-  // MODIFIED: More lenient token verification for development
-  function verifyToken(token: string): boolean {
-    try {
-      // TEMPORARY: Accept placeholder token for development
-      if (token === 'your-jwt-token') {
-        console.warn('⚠️  Using placeholder token - this should be fixed in production!');
-        return true; // Allow for development
-      }
-      
-      // Proper JWT validation
-      const parts = token.split('.');
-      if (parts.length !== 3) return false;
-      
-      // Optional: Add expiration check
-      const payload = JSON.parse(atob(parts[1]));
-      if (payload.exp && Date.now() >= payload.exp * 1000) {
-        return false;
-      }
-      return true;
-    } catch (e) {
-      return false;
-    }
+  // Initialize admin functionality if on admin page
+  if (document.querySelector('.dashboard-section')) {
+    initializeAdmin();
   }
-
-  // Initialize buttons and event listeners
-  initializeButtons();
 });
 
 function initializeButtons() {
@@ -296,7 +224,7 @@ async function fetchAndDisplayUsers() {
     });
     
     console.log('Response status:', response.status);
-    console.log('Response headers:', [...response.headers.entries()]);
+    
     
     // Handle 401 specifically
     if (response.status === 401) {
@@ -391,7 +319,7 @@ async function fetchAndDisplayProjects() {
   }
 }
 
-function displayProjects(projects: any[]) {
+function displayProjects(projects: Project[]) {
   const projectsList = document.getElementById('projectsList');
   if (!projectsList) return;
 
@@ -406,17 +334,26 @@ function displayProjects(projects: any[]) {
       </div>
       <div class="description">
         <p>${project.description}</p>
-        <p>Assigned to: ${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</p>
+        <div class="assignment-info">
+          <strong>Assigned to:</strong> 
+          <span class="assigned-user">${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</span>
+        </div>
       </div>
       <hr />
       <div class="btns">
         <button class="edit" onclick="editProject(${project.id})">Edit</button>
         <button class="delete" onclick="deleteProject(${project.id})">Delete</button>
-        ${!project.assignedTo ? `<button class="assign" onclick="assignProject(${project.id})">Assign</button>` : ''}
       </div>
     `;
     projectsList.appendChild(card);
   });
+
+  // Update assigned projects count
+  const assignedProjects = projects.filter(project => project.assignedTo);
+  const assignedProjectsElement = document.querySelector('.card-total:nth-child(3) h1');
+  if (assignedProjectsElement) {
+    assignedProjectsElement.textContent = assignedProjects.length.toString();
+  }
 }
 
 // Handle form submission
@@ -520,6 +457,7 @@ declare global {
 
 // Load projects functionality
 async function loadProjects(): Promise<void> {
+  console.log('=== LOAD PROJECTS START ===');
   const token = localStorage.getItem('token');
   if (!token) {
     window.location.href = 'login.html';
@@ -527,11 +465,15 @@ async function loadProjects(): Promise<void> {
   }
 
   try {
+    console.log('1. Fetching projects...');
     const response = await fetch('http://localhost:3000/projects', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
+
+    console.log('2. Response status:', response.status);
+    console.log('3. Response ok:', response.ok);
 
     if (response.status === 401) {
       window.location.href = 'login.html';
@@ -540,20 +482,28 @@ async function loadProjects(): Promise<void> {
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('4. Error response:', errorText);
       throw new Error(`Failed to load projects: ${errorText}`);
     }
 
-    const projects: Project[] = await response.json();
+    const projects = await response.json();
+    console.log('5. Projects loaded:', projects.length);
+    console.log('6. Projects data:', JSON.stringify(projects, null, 2));
+
     const projectsList = document.getElementById('projectsList');
-    if (!projectsList) return;
+    if (!projectsList) {
+      console.error('7. Projects list element not found');
+      return;
+    }
 
     projectsList.innerHTML = projects
       .map(
-        (project) => `
+        (project: Project) => `
         <div class="project-card" data-project-id="${project.id}">
           <h3>${project.title}</h3>
           <p>${project.description}</p>
-          <p>Status: ${project.status}</p>
+          <p>Status: ${project.assignedTo ? 'In Progress' : 'Not Assigned'}</p>
+          <p>Assigned to: ${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</p>
           <div class="project-actions">
             <button class="edit-btn" data-project-id="${project.id}">Edit</button>
             <button class="delete-btn" data-project-id="${project.id}">Delete</button>
@@ -562,6 +512,8 @@ async function loadProjects(): Promise<void> {
       `
       )
       .join('');
+
+    console.log('8. Projects rendered to DOM');
 
     // Add event listeners to buttons
     projectsList.querySelectorAll('.edit-btn').forEach(button => {
@@ -581,8 +533,12 @@ async function loadProjects(): Promise<void> {
         }
       });
     });
+
+    console.log('9. Event listeners added');
+    console.log('=== LOAD PROJECTS END ===');
   } catch (error) {
-    console.error('Error loading projects:', error);
+    console.error('=== LOAD PROJECTS ERROR ===');
+    console.error('Error details:', error);
     alert('Failed to load projects. Please refresh the page.');
   }
 }
@@ -744,6 +700,54 @@ async function deleteProject(id: number) {
   }
 }
 
+// Add function to load projects into select
+async function loadProjectsIntoSelect(): Promise<void> {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:3000/projects', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        window.location.href = 'login.html';
+        return;
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const projects = await response.json();
+    const projectSelect = document.getElementById('projectSelect') as HTMLSelectElement;
+    if (!projectSelect) return;
+
+    // Filter out already assigned projects
+    const unassignedProjects = projects.filter((project: Project) => !project.assignedTo);
+
+    projectSelect.innerHTML = `
+      <option value="">Select a project...</option>
+      ${unassignedProjects.map((project: Project) => `
+        <option value="${project.id}">${project.title}</option>
+      `).join('')}
+    `;
+
+    // Update project count in dashboard
+    const projectCountElement = document.querySelector('.card-total:nth-child(1) h1');
+    if (projectCountElement) {
+      projectCountElement.textContent = projects.length.toString();
+    }
+  } catch (error) {
+    console.error('Error loading projects:', error);
+  }
+}
+
+// Add function to load users into select
 async function loadUsers(): Promise<void> {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -768,27 +772,216 @@ async function loadUsers(): Promise<void> {
     const userSelect = document.getElementById('userSelect') as HTMLSelectElement;
     if (!userSelect) return;
 
-    userSelect.innerHTML = users
-      .map(
-        (user) => `
-        <option value="${user.id}">${user.name} (${user.email})</option>
-      `
-      )
-      .join('');
+    userSelect.innerHTML = `
+      <option value="">Select a user...</option>
+      ${users
+        .map(
+          (user) => `
+          <option value="${user.id}">${user.name} (${user.email})</option>
+        `
+        )
+        .join('')}
+    `;
   } catch (error) {
     console.error('Error loading users:', error);
   }
 }
 
-// Initialize admin functionality
+// Update initializeAdmin function to add form submit handler
 function initializeAdmin(): void {
   console.log('Initializing admin functionality');
   const token = localStorage.getItem('token');
   console.log('Current token in admin init:', token);
 
+  // Add form submit handler
+  const assignProjectForm = document.getElementById('assignProjectForm');
+  if (assignProjectForm) {
+    console.log('Assign project form found, adding submit listener');
+    assignProjectForm.addEventListener('submit', handleAssignProjectForm);
+  } else {
+    console.log('Assign project form not found');
+  }
+
   // Load initial data
   loadProjects();
   loadUsers();
+  loadProjectsIntoSelect();
+  updateDashboardCounts();
+}
+
+// Login functionality
+async function handleLogin(event: Event): Promise<void> {
+  event.preventDefault();
+  const form = event.target as HTMLFormElement;
+  
+  const email = (form.querySelector('#loginEmail') as HTMLInputElement).value;
+  const password = (form.querySelector('#loginPassword') as HTMLInputElement).value;
+
+  try {
+    const response = await fetch('http://localhost:3000/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error('Login failed: ' + errorText);
+    }
+
+    const data = await response.json();
+    
+    // Store the token and user data
+    localStorage.setItem('token', data.access_token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    // Redirect based on user role
+    if (data.user?.role === 'admin') {
+      window.location.href = 'admin.html';
+    } else {
+      window.location.href = 'user.html';
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    alert('Login failed. Please check your credentials.');
+  }
+}
+
+// Add function to handle assign project form submission
+async function handleAssignProjectForm(event: Event) {
+  event.preventDefault();
+  console.log('=== ASSIGN PROJECT FORM SUBMIT ===');
+  
+  const projectSelect = document.getElementById('projectSelect') as HTMLSelectElement;
+  const userSelect = document.getElementById('userSelect') as HTMLSelectElement;
+  
+  if (!projectSelect || !userSelect) {
+    console.error('Form elements not found');
+    return;
+  }
+
+  const projectId = parseInt(projectSelect.value);
+  const userId = parseInt(userSelect.value);
+
+  console.log('1. Selected Project ID:', projectId);
+  console.log('2. Selected User ID:', userId);
+
+  if (!projectId || !userId) {
+    alert('Please select both a project and a user');
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    console.log('3. Sending assignment request...');
+    const response = await fetch(`http://localhost:3000/projects/${projectId}/assign/${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('4. Response status:', response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('5. Assignment failed:', errorData);
+      if (errorData.message?.includes('already assigned')) {
+        alert('This user is already assigned to another project. A user can only be assigned to one project at a time.');
+      } else {
+        alert(`Failed to assign project: ${errorData.message || 'Unknown error'}`);
+      }
+      return;
+    }
+
+    const updatedProject = await response.json();
+    console.log('6. Project assigned successfully:', updatedProject);
+
+    // Clear the form
+    projectSelect.value = '';
+    userSelect.value = '';
+    
+    // Reload projects and update counts
+    await loadProjects();
+    await updateDashboardCounts();
+    
+    alert('Project assigned successfully!');
+  } catch (error) {
+    console.error('7. Assignment error:', error);
+    alert('Failed to assign project. Please try again.');
+  }
+}
+
+// Add function to update dashboard counts
+async function updateDashboardCounts(): Promise<void> {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const response = await fetch('http://localhost:3000/projects', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch projects');
+    }
+
+    const projects = await response.json();
+    
+    // Update total projects count
+    const totalProjectsElement = document.querySelector('.card-total:nth-child(1) h1');
+    if (totalProjectsElement) {
+      totalProjectsElement.textContent = projects.length.toString();
+    }
+
+    // Update assigned projects count
+    const assignedProjects = projects.filter((project: Project) => project.assignedTo);
+    const assignedProjectsElement = document.querySelector('.card-total:nth-child(3) h1');
+    if (assignedProjectsElement) {
+      assignedProjectsElement.textContent = assignedProjects.length.toString();
+    }
+  } catch (error) {
+    console.error('Error updating dashboard counts:', error);
+  }
+}
+
+// Add function to show assign dialog
+function showAssignDialog(projectId: number) {
+  const dialog = document.createElement('div');
+  dialog.className = 'assign-dialog';
+  dialog.innerHTML = `
+    <div class="assign-form">
+      <h3>Assign Project</h3>
+      <p class="assign-info">Note: A user can only be assigned to one project at a time.</p>
+      <select id="userSelect">
+        <option value="">Select a user...</option>
+      </select>
+      <div class="buttons">
+        <button onclick="assignProject(${projectId})">Assign</button>
+        <button onclick="closeAssignDialog()">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dialog);
+  loadUsers(); // Load users into the select
+}
+
+// Add function to close assign dialog
+function closeAssignDialog() {
+  const dialog = document.querySelector('.assign-dialog');
+  if (dialog) {
+    dialog.remove();
+  }
 }
 
 // Initialize when DOM is loaded
@@ -808,73 +1001,73 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeAdmin();
 });
 
-// Login functionality
-async function handleLogin(event: Event): Promise<void> {
-  event.preventDefault();
-  const form = event.target as HTMLFormElement;
+
+function initializeUserDashboard() {
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
   
-  const email = (form.querySelector('#loginEmail') as HTMLInputElement).value;
-  const password = (form.querySelector('#loginPassword') as HTMLInputElement).value;
+  if (!token) {
+    window.location.href = 'login.html';
+    return;
+  }
 
-  console.log('=== LOGIN DEBUG START ===');
-  console.log('1. Attempting login with email:', email);
-  console.log('2. Password provided:', !!password);
+  // Update the UI with user's name
+  const userNameElement = document.querySelector('.right h4');
+  if (userNameElement && user.name) {
+    userNameElement.textContent = user.name;
+  }
 
-  try {
-    console.log('3. Sending request to backend...');
-    const response = await fetch('http://localhost:3000/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+  // Initialize logout button - THIS IS THE CRUCIAL PART
+  const logoutButton = document.getElementById('logout');
+  if (logoutButton) {
+    logoutButton.addEventListener('click', handleLogout);
+    console.log('Logout button initialized'); // For debugging
+  } else {
+    console.error('Logout button not found'); // For debugging
+  }
 
-    console.log('4. Response status:', response.status);
-    console.log('5. Response ok:', response.ok);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('6. Login failed with response:', errorText);
-      throw new Error('Login failed: ' + errorText);
-    }
-
-    const data = await response.json();
-    console.log('7. Login response:', data);
-    console.log('8. User role:', data.user?.role);
-    console.log('9. Access token exists:', !!data.access_token);
-    console.log('10. Access token preview:', data.access_token ? data.access_token.substring(0, 20) + '...' : 'none');
-
-    if (data.user?.role !== 'admin') {
-      console.log('11. User is not an admin');
-      alert('You need admin privileges to access this page');
-      return;
-    }
-
-    // Store the token
-    localStorage.setItem('token', data.access_token);
-    console.log('12. Token stored in localStorage');
-    
-    // Store user info if needed
-    localStorage.setItem('user', JSON.stringify(data.user));
-    console.log('13. User info stored in localStorage');
-
-    // Verify storage
-    const storedToken = localStorage.getItem('token');
-    console.log('14. Stored token matches:', storedToken === data.access_token);
-    console.log('15. Stored token preview:', storedToken ? storedToken.substring(0, 20) + '...' : 'none');
-
-    console.log('=== LOGIN DEBUG SUCCESS ===');
-    
-    // Redirect to admin page
-    window.location.href = 'admin.html';
-  } catch (error) {
-    console.error('=== LOGIN DEBUG ERROR ===');
-    console.error('Error details:', error);
-    alert('Login failed. Please check your credentials.');
+  // Load user-specific content
+  if (user.id) {
+    loadUserProjects(user.id);
   }
 }
 
+async function loadUserProjects(userId: number) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
 
+    const response = await fetch(`http://localhost:3000/users/${userId}/projects`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
+    if (response.ok) {
+      const projects = await response.json();
+      // Display the projects in the user dashboard
+      displayProjects(projects);
+    }
+  } catch (error) {
+    console.error('Error loading user projects:', error);
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  // Check which page we're on
+  if (document.querySelector('.dashboard-section')) {
+    // Admin dashboard
+    initializeAdmin();
+  } else if (document.querySelector('.content')) {
+    // User dashboard
+    initializeUserDashboard();
+  }
 
+  // Common initialization (login/register forms, etc.)
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleLogin(e);
+    });
+  }
+});
