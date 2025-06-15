@@ -9,7 +9,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
-import { CreateProjectDto, UpdateProjectDto, AssignProjectDto } from './dto/project.dto';
+import {
+  CreateProjectDto,
+  UpdateProjectDto,
+  AssignProjectDto,
+} from './dto/project.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';

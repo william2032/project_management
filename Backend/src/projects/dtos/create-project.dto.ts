@@ -8,7 +8,7 @@ export class CreateProjectDto {
   @IsNotEmpty({ message: 'Project name is required' })
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   @Transform(({ value }) => value?.trim())
-  name: string;
+  title: string;
 
   @IsString({ message: 'Description must be a string' })
   @IsNotEmpty({ message: 'Description is required' })

@@ -1,0 +1,5 @@
+{
+  "message": "Cannot GET /users/me/1",
+  "error": "Not Found",
+  "statusCode": 404
+}

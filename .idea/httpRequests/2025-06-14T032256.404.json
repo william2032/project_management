@@ -1,0 +1,5 @@
+{
+  "message": "Cannot POST /auth/login",
+  "error": "Not Found",
+  "statusCode": 404
+}

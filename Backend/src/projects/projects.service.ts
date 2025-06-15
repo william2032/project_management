@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
   Injectable,
@@ -21,42 +20,42 @@ export class ProjectsService {
       console.log('Creating project with data:', {
         ...createProjectDto,
         endDateType: typeof createProjectDto.endDate,
-        endDateValue: createProjectDto.endDate
+        endDateValue: createProjectDto.endDate,
       });
 
       const endDate = createProjectDto.endDate
         ? new Date(createProjectDto.endDate)
         : null;
-      
+
       console.log('Date processing:', {
         rawEndDate: createProjectDto.endDate,
         parsedEndDate: endDate,
         parsedEndDateType: endDate ? typeof endDate : 'null',
-        parsedEndDateValue: endDate ? endDate.toISOString() : null
+        parsedEndDateValue: endDate ? endDate.toISOString() : null,
       });
 
       const projectData = {
         title: createProjectDto.title,
         description: createProjectDto.description,
         endDate,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         status: 'in_progress' as const,
       };
       console.log('Final project data:', {
         ...projectData,
         endDateType: typeof projectData.endDate,
-        endDateValue: projectData.endDate ? projectData.endDate.toISOString() : null
+        endDateValue: projectData.endDate
+          ? projectData.endDate.toISOString()
+          : null,
       });
 
       const result = await this.prisma.project.create({
         data: projectData,
       });
-      
+
       console.log('Created project:', {
         ...result,
         endDateType: typeof result.endDate,
-        endDateValue: result.endDate ? result.endDate.toISOString() : null
+        endDateValue: result.endDate ? result.endDate.toISOString() : null,
       });
 
       return result;
@@ -135,6 +134,9 @@ export class ProjectsService {
       // Check if user exists
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
+        include: {
+          project: true,
+        },
       });
 
       if (!user) {
@@ -142,16 +144,32 @@ export class ProjectsService {
       }
 
       // Check if user already has a project
-      const userWithProject = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: { project: true },
+      if (user.project) {
+        throw new BadRequestException('User already as assigned project');
+      }
+      // Check if project is already assigned to someone else
+      const existingAssignment = await this.prisma.project.findFirst({
+        where: {
+          id: projectId,
+          userId: { not: null },
+        },
       });
 
-      if (userWithProject?.project) {
-        throw new BadRequestException('User already has an assigned project');
+      if (existingAssignment) {
+        throw new BadRequestException(
+          'Project is already assigned to another user',
+        );
       }
 
-      // Assign project to user
+      //Assign project to user
+      // await this.prisma.user.update({
+      //   where: { id: projectId },
+      //   data: {
+      //     id: userId,
+      //     status: 'in_progress',
+      //   },
+      // });
+
       return await this.prisma.project.update({
         where: { id: projectId },
         data: {
@@ -227,6 +245,7 @@ export class ProjectsService {
         throw new NotFoundException(`Project with ID ${id} not found`);
       }
 
+      // The project will be automatically unassigned from the user due to the foreign key constraint
       return await this.prisma.project.delete({
         where: { id },
       });
@@ -243,12 +262,14 @@ export class ProjectsService {
   async getAssignedProject(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { project: true },
+      include: {
+        project: true, // Include the related project
+      },
     });
+
     if (!user) {
-      throw new NotFoundException('user not found');
+      throw new NotFoundException('User not found');
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return user.project;
   }
 
@@ -257,26 +278,20 @@ export class ProjectsService {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: {
-        assignedTo: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+        assignedTo: true,
       },
     });
+
     if (!project) {
       throw new NotFoundException('Project not found');
     }
-    if (!project.assignedTo) {
-      throw new BadRequestException('Project is not assigned to any user');
-    }
-    if (project.assignedTo.id !== userId) {
+
+    // Check if user has this project assigned
+    if (!project.assignedTo || project.assignedTo.id !== userId) {
       throw new BadRequestException('Project not assigned to this user');
     }
 
-    //update project status to completed
+    // Update project status to completed
     return this.prisma.project.update({
       where: { id: projectId },
       data: {

@@ -25,12 +25,14 @@ interface User {
 async function addProject(event: Event): Promise<void> {
   event.preventDefault();
   const form = event.target as HTMLFormElement;
-  
+
   // Get form values
   const title = (form.querySelector('#title') as HTMLInputElement).value;
-  const description = (form.querySelector('#description') as HTMLTextAreaElement).value;
+  const description = (
+    form.querySelector('#description') as HTMLTextAreaElement
+  ).value;
   const endDateInput = form.querySelector('#endDate') as HTMLInputElement;
-  
+
   console.log('Form values:', {
     title,
     description,
@@ -38,8 +40,8 @@ async function addProject(event: Event): Promise<void> {
       input: endDateInput,
       type: endDateInput.type,
       value: endDateInput.value,
-      required: endDateInput.required
-    }
+      required: endDateInput.required,
+    },
   });
 
   // Parse end date
@@ -48,21 +50,21 @@ async function addProject(event: Event): Promise<void> {
     const [year, month, day] = endDateInput.value.split('-').map(Number);
     const date = new Date(year, month - 1, day);
     endDate = date.toISOString();
-    
+
     console.log('Date parsing:', {
       rawEndDate: endDateInput.value,
       year,
       month,
       day,
       formattedDate: date,
-      isoString: endDate
+      isoString: endDate,
     });
   }
 
   const requestBody = {
     title,
     description,
-    endDate
+    endDate,
   };
 
   console.log('Sending request with body:', requestBody);
@@ -111,7 +113,7 @@ async function loadProjects(): Promise<void> {
           ${project.assignedTo ? `<p>Assigned to: ${project.assignedTo.name}</p>` : ''}
           <button onclick="assignProject(${project.id})">Assign Project</button>
         </div>
-      `
+      `,
       )
       .join('');
   } catch (error) {
@@ -126,14 +128,16 @@ async function loadUsers(): Promise<void> {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const users: User[] = await response.json();
-    const userSelect = document.getElementById('userSelect') as HTMLSelectElement;
+    const userSelect = document.getElementById(
+      'userSelect',
+    ) as HTMLSelectElement;
     if (!userSelect) return;
 
     userSelect.innerHTML = users
       .map(
         (user) => `
         <option value="${user.id}">${user.name} (${user.email})</option>
-      `
+      `,
       )
       .join('');
   } catch (error) {
@@ -198,8 +202,9 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
   await app.listen(3000);
-  
+
   // Initialize admin functionality after server starts
   initializeAdmin();
 }
+
 bootstrap();

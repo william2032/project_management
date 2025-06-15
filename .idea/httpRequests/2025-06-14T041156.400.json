@@ -1,0 +1,5 @@
+{
+  "message": "Expected ',' or '}' after property value in JSON at position 55 (line 4 column 3)",
+  "error": "Bad Request",
+  "statusCode": 400
+}

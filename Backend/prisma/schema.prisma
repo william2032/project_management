@@ -22,20 +22,20 @@ model User {
   role         Role     @default(user)
   profileImage String?
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  updatedAt    DateTime @default(now()) @updatedAt
   project      Project? // One-to-one relation with Project
 }
 
 model Project {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   title       String
   description String
-  status      Status   @default(pending)
+  status      Status    @default(pending)
   endDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  assignedTo  User?    @relation(fields: [userId], references: [id])
-  userId      Int?     @unique // One user can only have one project
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  assignedTo  User?     @relation(fields: [userId], references: [id])
+  userId      Int?      @unique // One user can only have one project
 }
 
 enum Role {
@@ -48,4 +48,3 @@ enum Status {
   in_progress
   completed
 }
-
