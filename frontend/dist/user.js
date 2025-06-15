@@ -71,41 +71,110 @@ function initializeUserDashboard() {
         }
     });
 }
+// Initialize sidebar navigation
 function initializeSidebarNavigation() {
-    const sidebarItems = document.querySelectorAll('.sidebar li');
-    sidebarItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const sectionToShow = item.getAttribute('data-section');
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.style.display = 'none';
-            });
-            // Show selected section
-            const targetSection = document.querySelector(`.${sectionToShow}-section`);
-            if (targetSection) {
-                targetSection.style.display = 'block';
-                // Reload projects if needed
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                if (user.id) {
-                    loadUserProjects(user.id);
-                }
-            }
-            // Update active state
-            sidebarItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
+    try {
+        console.log('[DEBUG] Initializing sidebar navigation');
+        const sidebarItems = document.querySelectorAll('.sidebar li');
+        console.log('[DEBUG] Found sidebar items:', sidebarItems.length);
+        // First, ensure all sections are hidden except current projects
+        document.querySelectorAll('.section').forEach(section => {
+            section.style.display = 'none';
         });
-    });
+        const currentSection = document.querySelector('.current-projects-section');
+        if (currentSection) {
+            currentSection.style.display = 'block';
+        }
+        sidebarItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('[DEBUG] Sidebar item clicked:', item);
+                const sectionToShow = item.getAttribute('data-section');
+                console.log('[DEBUG] Section to show:', sectionToShow);
+                if (!sectionToShow) {
+                    console.error('[DEBUG] No section specified for item');
+                    return;
+                }
+                // Hide all sections first
+                document.querySelectorAll('.section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                // Show selected section
+                const targetSection = document.querySelector(`.${sectionToShow}-section`);
+                if (targetSection) {
+                    console.log('[DEBUG] Showing section:', sectionToShow);
+                    targetSection.style.display = 'block';
+                    // Update active state in sidebar
+                    sidebarItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    // Reload projects if needed
+                    const user = JSON.parse(localStorage.getItem('user') || '{}');
+                    if (user.id) {
+                        console.log('[DEBUG] Reloading projects for section:', sectionToShow);
+                        loadUserProjects(user.id);
+                    }
+                }
+                else {
+                    console.error('[DEBUG] Target section not found:', sectionToShow);
+                }
+            });
+        });
+    }
+    catch (error) {
+        console.error('[DEBUG] Error initializing sidebar:', error);
+    }
 }
 // Handle logout
 function handleLogout() {
-    console.log('Logging out user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = 'login.html';
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            console.log('[DEBUG] Starting logout process');
+            // Get the token before clearing storage
+            const token = localStorage.getItem('token');
+            console.log('[DEBUG] Token found:', !!token);
+            // Clear all local storage
+            localStorage.clear();
+            console.log('[DEBUG] Local storage cleared');
+            // Clear all cookies
+            document.cookie.split(';').forEach(cookie => {
+                const [name] = cookie.trim().split('=');
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+            });
+            console.log('[DEBUG] Cookies cleared');
+            // If we have a token, try to notify the backend about logout
+            if (token) {
+                try {
+                    console.log('[DEBUG] Notifying backend about logout');
+                    yield fetch('http://localhost:3000/auth/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include'
+                    });
+                    console.log('[DEBUG] Backend logout notification sent');
+                }
+                catch (error) {
+                    console.error('[DEBUG] Error notifying backend about logout:', error);
+                    // Continue with logout even if backend notification fails
+                }
+            }
+            console.log('[DEBUG] Redirecting to login page');
+            // Redirect to login page
+            window.location.href = 'login.html';
+        }
+        catch (error) {
+            console.error('[DEBUG] Error during logout:', error);
+            // Force redirect to login page even if there's an error
+            window.location.href = 'login.html';
+        }
+    });
 }
 // Load user projects from API
 function loadUserProjects(userId) {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         try {
             console.log(`[DEBUG] Loading projects for user ${userId}`);
             showLoadingSpinners();
@@ -127,11 +196,10 @@ function loadUserProjects(userId) {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                credentials: 'include' // Important for cookies if using them
+                credentials: 'include'
             });
             console.log('[DEBUG] Response status:', response.status);
             if (response.status === 401) {
-                // Token might be expired - clear storage and redirect
                 localStorage.clear();
                 window.location.href = 'login.html';
                 return;
@@ -143,29 +211,38 @@ function loadUserProjects(userId) {
             }
             const projects = yield response.json();
             console.log('[DEBUG] Projects received:', projects);
-            if (projects.length === 0) {
+            // Sort projects by status and date
+            const sortedProjects = projects.sort((a, b) => {
+                // First sort by status (in_progress first)
+                if (a.status !== b.status) {
+                    return a.status === 'in_progress' ? -1 : 1;
+                }
+                // Then sort by assigned date (newest first)
+                return new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime();
+            });
+            // Get the active section
+            const activeSection = (_a = document.querySelector('.sidebar li.active')) === null || _a === void 0 ? void 0 : _a.getAttribute('data-section');
+            console.log('[DEBUG] Active section:', activeSection);
+            if (sortedProjects.length === 0) {
                 displayNoProjectsMessage();
             }
             else {
-                displayProjects(projects);
+                displayProjects(sortedProjects);
+            }
+            // Ensure the correct section is visible
+            if (activeSection) {
+                document.querySelectorAll('.section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                const targetSection = document.querySelector(`.${activeSection}-section`);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                }
             }
         }
         catch (error) {
             console.error('[DEBUG] Error loading projects:', error);
             displayErrorMessage(error instanceof Error ? error.message : 'Failed to load projects');
-            // Optional: Fallback to mock data in development
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.warn('[DEBUG] Using mock data');
-                displayProjects([
-                    {
-                        id: 'mock-1',
-                        title: 'Sample Project',
-                        description: 'This is mock data while debugging',
-                        status: 'in_progress',
-                        assignedAt: new Date().toISOString()
-                    }
-                ]);
-            }
         }
         finally {
             hideLoadingSpinners();
@@ -275,20 +352,15 @@ function displayProjects(projects) {
             </div>
         `;
     }
-    // Show current projects by default if not already shown
-    const currentSection = document.querySelector('.current-projects-section');
-    if (currentSection && window.getComputedStyle(currentSection).display === 'block') {
-        return;
+    // Update project counts
+    const currentCount = document.getElementById('currentProjectsCount');
+    const completedCount = document.getElementById('completedProjectsCount');
+    if (currentCount) {
+        currentCount.textContent = currentProjects.length.toString();
     }
-    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
-    if (currentSection) {
-        currentSection.style.display = 'block';
+    if (completedCount) {
+        completedCount.textContent = completedProjects.length.toString();
     }
-    // Set active tab
-    document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
-    const currentTab = document.querySelector('.sidebar li[data-section="current-projects"]');
-    if (currentTab)
-        currentTab.classList.add('active');
 }
 // Create project card element
 function createProjectCard(project, isCompleted = false) {
@@ -362,19 +434,130 @@ function formatDate(dateString) {
 }
 // View project details
 function viewProjectDetails(projectId) {
-    console.log(`Viewing details for project: ${projectId}`);
-    // You can implement a modal, redirect to details page, or expand the card
-    alert(`Project details for ${projectId} - Feature to be implemented`);
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+            // Show loading state in modal
+            const modal = document.getElementById('projectModal');
+            const modalBody = modal === null || modal === void 0 ? void 0 : modal.querySelector('.modal-body');
+            if (modal && modalBody) {
+                modal.classList.add('show');
+                modalBody.innerHTML = `
+                <div class="loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <p>Loading project details...</p>
+                </div>
+            `;
+            }
+            // First try to get project from the projects list
+            const projectCard = (_a = document.querySelector(`[data-project-id="${projectId}"]`)) === null || _a === void 0 ? void 0 : _a.closest('.project-card');
+            let project;
+            if (projectCard) {
+                // Extract project data from the card
+                project = {
+                    id: projectId,
+                    title: ((_b = projectCard.querySelector('h3')) === null || _b === void 0 ? void 0 : _b.textContent) || '',
+                    description: ((_c = projectCard.querySelector('.description')) === null || _c === void 0 ? void 0 : _c.textContent) || '',
+                    status: ((_d = projectCard.querySelector('.status')) === null || _d === void 0 ? void 0 : _d.classList.contains('status-completed')) ? 'completed' : 'in_progress',
+                    assignedBy: ((_g = (_f = (_e = projectCard.querySelector('.due-date')) === null || _e === void 0 ? void 0 : _e.textContent) === null || _f === void 0 ? void 0 : _f.split('Assigned by: ')[1]) === null || _g === void 0 ? void 0 : _g.split(' on ')[0]) || 'Manager',
+                    assignedAt: new Date().toISOString(), // Use current date as fallback
+                    dueDate: ((_j = (_h = projectCard.querySelector('.due-date:nth-child(2)')) === null || _h === void 0 ? void 0 : _h.textContent) === null || _j === void 0 ? void 0 : _j.split('Due: ')[1]) || undefined
+                };
+            }
+            else {
+                // If not found in DOM, try to fetch from API
+                const response = yield fetch(`http://localhost:3000/projects/${projectId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch project details');
+                }
+                project = yield response.json();
+            }
+            // Update modal content
+            if (modal && modalBody) {
+                modalBody.innerHTML = `
+                <div class="project-details">
+                    <h2 id="modalProjectTitle">${project.title}</h2>
+                    <span id="modalProjectStatus" class="status ${project.status === 'completed' ? 'status-completed' : 'status-in-progress'}">
+                        ${project.status === 'completed' ? 'Completed' : 'In Progress'}
+                    </span>
+                    <p id="modalProjectDescription" class="description">${project.description}</p>
+                    <div class="timeline-info">
+                        <p><i class="fa-solid fa-user-tie"></i> Assigned by: <span id="modalProjectAssignedBy">${project.assignedBy || 'Manager'}</span></p>
+                        <p><i class="fa-regular fa-calendar"></i> Assigned on: <span id="modalProjectAssignedDate">${formatDate(project.assignedAt)}</span></p>
+                        ${project.dueDate ? `
+                            <p><i class="fa-regular fa-calendar"></i> Due date: <span id="modalProjectDueDate">${formatDate(project.dueDate)}</span></p>
+                        ` : ''}
+                    </div>
+                    ${project.status !== 'completed' ? `
+                        <button id="modalCompleteBtn" class="btn btn-complete">
+                            <i class="fa-solid fa-check"></i> Mark as Complete
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+                // Add event listener for complete button
+                const completeBtn = document.getElementById('modalCompleteBtn');
+                if (completeBtn) {
+                    completeBtn.onclick = () => {
+                        markProjectComplete(projectId);
+                        modal.classList.remove('show');
+                    };
+                }
+            }
+            // Add event listeners for modal close buttons
+            const closeButtons = modal === null || modal === void 0 ? void 0 : modal.querySelectorAll('.close-modal, .btn-close');
+            closeButtons === null || closeButtons === void 0 ? void 0 : closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    modal === null || modal === void 0 ? void 0 : modal.classList.remove('show');
+                });
+            });
+            // Close modal when clicking outside
+            modal === null || modal === void 0 ? void 0 : modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+        }
+        catch (error) {
+            console.error('Error fetching project details:', error);
+            const modal = document.getElementById('projectModal');
+            const modalBody = modal === null || modal === void 0 ? void 0 : modal.querySelector('.modal-body');
+            if (modal && modalBody) {
+                modalBody.innerHTML = `
+                <div class="error-message">
+                    <i class="fa-solid fa-exclamation-triangle"></i>
+                    <p>Error: ${error instanceof Error ? error.message : 'Failed to load project details'}</p>
+                    <button class="btn btn-close close-modal">Close</button>
+                </div>
+            `;
+            }
+        }
+    });
 }
 // Mark project as complete
 function markProjectComplete(projectId) {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
         if (!confirm('Are you sure you want to mark this project as complete?'))
             return;
         try {
             const token = localStorage.getItem('token');
             if (!token) {
                 throw new Error('No authentication token found');
+            }
+            // Show loading state
+            const projectCard = (_a = document.querySelector(`[data-project-id="${projectId}"]`)) === null || _a === void 0 ? void 0 : _a.closest('.project-card');
+            if (projectCard) {
+                projectCard.classList.add('loading');
             }
             const response = yield fetch(`http://localhost:3000/projects/${projectId}/complete`, {
                 method: 'PATCH',
@@ -388,18 +571,119 @@ function markProjectComplete(projectId) {
                 const errorText = yield response.text();
                 throw new Error(errorText || 'Failed to update project status');
             }
+            // Show success message
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.innerHTML = `
+            <i class="fa-solid fa-check-circle"></i>
+            <p>Project marked as complete successfully!</p>
+        `;
+            document.body.appendChild(successMessage);
+            setTimeout(() => successMessage.remove(), 3000);
             // Reload projects
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.id) {
-                loadUserProjects(user.id);
+                yield loadUserProjects(user.id);
+                // Switch to completed projects tab
+                const completedTab = document.querySelector('.sidebar li[data-section="completed-projects"]');
+                if (completedTab) {
+                    // Hide all sections
+                    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+                    // Show completed projects section
+                    const completedSection = document.querySelector('.completed-projects-section');
+                    if (completedSection) {
+                        completedSection.style.display = 'block';
+                    }
+                    // Update active tab
+                    document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
+                    completedTab.classList.add('active');
+                }
             }
         }
         catch (error) {
             console.error('Error completing project:', error);
-            alert(error instanceof Error ? error.message : 'Failed to update project status');
+            // Show error message in a more user-friendly way
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.innerHTML = `
+            <i class="fa-solid fa-exclamation-triangle"></i>
+            <p>${error instanceof Error ? error.message : 'Failed to update project status'}</p>
+        `;
+            document.body.appendChild(errorMessage);
+            setTimeout(() => errorMessage.remove(), 5000);
+        }
+        finally {
+            // Remove loading state
+            const projectCard = (_b = document.querySelector(`[data-project-id="${projectId}"]`)) === null || _b === void 0 ? void 0 : _b.closest('.project-card');
+            if (projectCard) {
+                projectCard.classList.remove('loading');
+            }
         }
     });
 }
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeUserDashboard);
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        console.log('[DEBUG] DOM loaded, initializing...');
+        // Initialize dashboard
+        initializeUserDashboard();
+        // Initialize sidebar navigation
+        initializeSidebarNavigation();
+        // Add logout event listener
+        const logoutButton = document.getElementById('logout');
+        console.log('[DEBUG] Logout button found:', !!logoutButton);
+        if (logoutButton) {
+            logoutButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('[DEBUG] Logout button clicked');
+                handleLogout();
+            });
+        }
+        else {
+            console.error('[DEBUG] Logout button not found');
+        }
+        // Add event listeners for all buttons with data-project-id
+        document.addEventListener('click', (e) => {
+            try {
+                const target = e.target;
+                const button = target.closest('[data-project-id]');
+                const projectId = button === null || button === void 0 ? void 0 : button.getAttribute('data-project-id');
+                if (projectId) {
+                    console.log('[DEBUG] Project button clicked:', projectId);
+                    if (target.classList.contains('btn-complete') || target.closest('.btn-complete')) {
+                        console.log('[DEBUG] Marking project as complete:', projectId);
+                        markProjectComplete(projectId);
+                    }
+                    else if (target.classList.contains('btn-view') || target.closest('.btn-view')) {
+                        console.log('[DEBUG] Viewing project details:', projectId);
+                        viewProjectDetails(projectId);
+                    }
+                }
+            }
+            catch (error) {
+                console.error('[DEBUG] Error handling project button click:', error);
+            }
+        });
+        // Add fallback click handlers for project cards
+        document.addEventListener('click', (e) => {
+            try {
+                const target = e.target;
+                const projectCard = target.closest('.project-card');
+                if (projectCard) {
+                    const projectId = projectCard.getAttribute('data-project-id');
+                    if (projectId) {
+                        console.log('[DEBUG] Project card clicked:', projectId);
+                        viewProjectDetails(projectId);
+                    }
+                }
+            }
+            catch (error) {
+                console.error('[DEBUG] Error handling project card click:', error);
+            }
+        });
+    }
+    catch (error) {
+        console.error('[DEBUG] Error during initialization:', error);
+    }
+});
 //# sourceMappingURL=user.js.map

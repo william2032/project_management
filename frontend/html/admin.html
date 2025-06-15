@@ -39,6 +39,10 @@
             <i class="fa-solid fa-folder"></i>
             <p>Projects</p>
           </li>
+          <li data-section="completed-projects">
+            <i class="fa-solid fa-check-circle"></i>
+            <p>Completed Projects</p>
+          </li>
           <li data-section="add-project">
             <i class="fa-solid fa-plus"></i>
             <p>Add Project</p>
@@ -113,18 +117,9 @@
         <!-- Users Section -->
         <div class="section users-section" style="display: none">
           <h1>All Users</h1>
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-              </tr>
-            </thead>
-            <tbody id="usersTable">
-              <!-- Users inserted here -->
-            </tbody>
-          </table>
+          <div id="usersTable">
+            <!-- User cards will be loaded here -->
+          </div>
         </div>
         
 
@@ -133,6 +128,14 @@
           <h1>All Projects</h1>
           <div class="projects-cards" id="projectsList">
             <!-- Projects will be inserted here -->
+          </div>
+        </div>
+
+        <!-- Completed Projects Section -->
+        <div class="section completed-projects-section" style="display: none">
+          <h1>Completed Projects</h1>
+          <div class="completed-projects-container" id="completedProjectsList">
+            <!-- Completed projects will be loaded here -->
           </div>
         </div>
 

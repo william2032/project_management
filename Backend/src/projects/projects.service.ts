@@ -230,4 +230,59 @@ export class ProjectsService {
       throw new InternalServerErrorException('Failed to fetch user projects');
     }
   }
+
+  async markAsComplete(projectId: number, userId: number) {
+    try {
+      // Ensure both IDs are numbers
+      const projectIdNum = Number(projectId);
+      const userIdNum = Number(userId);
+
+      if (isNaN(projectIdNum) || isNaN(userIdNum)) {
+        throw new Error('Invalid project or user ID');
+      }
+
+      // First check if the project exists and is assigned to the user
+      const project = await this.prisma.project.findFirst({
+        where: {
+          id: projectIdNum,
+          assignedTo: {
+            id: userIdNum,
+          },
+        },
+        include: {
+          assignedTo: true,
+        },
+      });
+
+      if (!project) {
+        throw new NotFoundException('Project not found or not assigned to you');
+      }
+
+      // Update the project status
+      return await this.prisma.project.update({
+        where: { id: projectIdNum },
+        data: {
+          status: 'completed',
+          updatedAt: new Date(),
+        },
+        include: {
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Detailed error completing project:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Failed to complete project: ${error.message}`,
+      );
+    }
+  }
 }

@@ -219,17 +219,116 @@ function displayUsers(users) {
         console.error('Users table not found');
         return;
     }
-    // Clear existing table rows
+    // Clear existing content
     usersTable.innerHTML = '';
-    // Populate table with user data
+    // Create a container for user cards
+    const usersContainer = document.createElement('div');
+    usersContainer.className = 'users-container';
+    // Populate container with user cards
     users.forEach(user => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-      <td>${user.name}</td>
-      <td>${user.email}</td>
-      <td>${user.role}</td>
+        const card = document.createElement('div');
+        card.className = 'user-card';
+        card.innerHTML = `
+      <div class="user-card-header">
+        <div class="user-avatar">
+          <i class="fa-regular fa-user"></i>
+        </div>
+        <div class="user-role ${user.role.toLowerCase()}">
+          ${user.role}
+        </div>
+      </div>
+      <div class="user-card-body">
+        <h3 class="user-name">${user.name}</h3>
+        <p class="user-email">
+          <i class="fa-regular fa-envelope"></i>
+          ${user.email}
+        </p>
+      </div>
+      <div class="user-card-footer">
+        <button class="view-profile-btn" data-user-id="${user.id}">
+          <i class="fa-solid fa-eye"></i>
+          View Profile
+        </button>
+      </div>
     `;
-        usersTable.appendChild(row);
+        // Add hover effect class
+        card.classList.add('hover-effect');
+        // Add click event for view profile
+        const viewProfileBtn = card.querySelector('.view-profile-btn');
+        if (viewProfileBtn) {
+            viewProfileBtn.addEventListener('click', () => {
+                viewUserProfile(user.id);
+            });
+        }
+        usersContainer.appendChild(card);
+    });
+    // Add the container to the page
+    usersTable.appendChild(usersContainer);
+}
+// Add function to view user profile
+function viewUserProfile(userId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const response = yield fetch(`http://localhost:3000/users/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch user details');
+            }
+            const user = yield response.json();
+            // Create and show profile modal
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>User Profile</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="user-profile">
+            <div class="profile-avatar">
+              <i class="fa-regular fa-user"></i>
+            </div>
+            <div class="profile-info">
+              <h3>${user.name}</h3>
+              <p><i class="fa-regular fa-envelope"></i> ${user.email}</p>
+              <p><i class="fa-solid fa-user-tag"></i> ${user.role}</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-close">Close</button>
+        </div>
+      </div>
+    `;
+            document.body.appendChild(modal);
+            // Add event listeners for modal close
+            const closeButtons = modal.querySelectorAll('.close-modal, .btn-close');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    modal.remove();
+                });
+            });
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        catch (error) {
+            console.error('Error viewing user profile:', error);
+            alert('Failed to load user profile. Please try again.');
+        }
     });
 }
 // Project Management Functions
@@ -357,8 +456,13 @@ function createProject(title, description) {
                 titleInput.value = '';
                 descriptionInput.value = '';
             }
-            // Reload projects
-            yield loadProjects();
+            // Reload all project-related data
+            console.log('Reloading project data...');
+            yield Promise.all([
+                loadProjects(),
+                loadProjectsIntoSelect(),
+                updateDashboardCounts()
+            ]);
             // Show success message
             alert('Project created successfully!');
             // Switch to projects section
@@ -381,19 +485,26 @@ function loadProjects() {
         console.log('=== LOAD PROJECTS START ===');
         const token = localStorage.getItem('token');
         if (!token) {
+            console.error('No token found, redirecting to login');
             window.location.href = 'login.html';
             return;
         }
         try {
             console.log('1. Fetching projects...');
             const response = yield fetch('http://localhost:3000/projects', {
+                method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
             });
             console.log('2. Response status:', response.status);
             console.log('3. Response ok:', response.ok);
             if (response.status === 401) {
+                console.error('Unauthorized access, redirecting to login');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
                 window.location.href = 'login.html';
                 return;
             }
@@ -405,26 +516,30 @@ function loadProjects() {
             const projects = yield response.json();
             console.log('5. Projects loaded:', projects.length);
             console.log('6. Projects data:', JSON.stringify(projects, null, 2));
+            // Display regular projects
             const projectsList = document.getElementById('projectsList');
             if (!projectsList) {
                 console.error('7. Projects list element not found');
                 return;
             }
-            projectsList.innerHTML = projects
+            // Filter active projects
+            const activeProjects = projects.filter((project) => project.status !== 'completed');
+            console.log('8. Active projects:', activeProjects.length);
+            projectsList.innerHTML = activeProjects
                 .map((project) => `
-        <div class="project-card" data-project-id="${project.id}">
-          <h3>${project.title}</h3>
-          <p>${project.description}</p>
-          <p>Status: ${project.assignedTo ? 'In Progress' : 'Not Assigned'}</p>
-          <p>Assigned to: ${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</p>
-          <div class="project-actions">
-            <button class="edit-btn" data-project-id="${project.id}">Edit</button>
-            <button class="delete-btn" data-project-id="${project.id}">Delete</button>
+          <div class="project-card" data-project-id="${project.id}">
+            <h3>${project.title}</h3>
+            <p>${project.description}</p>
+            <p>Status: ${project.assignedTo ? 'In Progress' : 'Not Assigned'}</p>
+            <p>Assigned to: ${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</p>
+            <div class="project-actions">
+              <button class="edit-btn" data-project-id="${project.id}">Edit</button>
+              <button class="delete-btn" data-project-id="${project.id}">Delete</button>
+            </div>
           </div>
-        </div>
-      `)
+        `)
                 .join('');
-            console.log('8. Projects rendered to DOM');
+            console.log('9. Active projects rendered to DOM');
             // Add event listeners to buttons
             projectsList.querySelectorAll('.edit-btn').forEach(button => {
                 button.addEventListener('click', () => {
@@ -442,13 +557,30 @@ function loadProjects() {
                     }
                 });
             });
-            console.log('9. Event listeners added');
+            // Display completed projects
+            displayCompletedProjects(projects);
+            // Update dashboard counts
+            yield updateDashboardCounts(projects);
+            console.log('10. All projects loaded and displayed successfully');
             console.log('=== LOAD PROJECTS END ===');
         }
         catch (error) {
             console.error('=== LOAD PROJECTS ERROR ===');
             console.error('Error details:', error);
-            alert('Failed to load projects. Please refresh the page.');
+            console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+            // Show error message to user
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.innerHTML = `
+      <i class="fa-solid fa-exclamation-triangle"></i>
+      <p>Failed to load projects. Please try again.</p>
+      <button onclick="window.location.reload()">Refresh Page</button>
+    `;
+            document.body.appendChild(errorMessage);
+            // Remove error message after 5 seconds
+            setTimeout(() => {
+                errorMessage.remove();
+            }, 5000);
         }
     });
 }
@@ -595,9 +727,10 @@ function deleteProject(id) {
         }
     });
 }
-// Add function to load projects into select
+// Update loadProjectsIntoSelect function to allow reassignment after completion
 function loadProjectsIntoSelect() {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log('Loading projects into select...');
         const token = localStorage.getItem('token');
         if (!token) {
             window.location.href = 'login.html';
@@ -606,7 +739,8 @@ function loadProjectsIntoSelect() {
         try {
             const response = yield fetch('http://localhost:3000/projects', {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
             if (!response.ok) {
@@ -617,25 +751,50 @@ function loadProjectsIntoSelect() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const projects = yield response.json();
+            console.log('Total projects loaded:', projects.length);
             const projectSelect = document.getElementById('projectSelect');
-            if (!projectSelect)
+            if (!projectSelect) {
+                console.error('Project select element not found');
                 return;
-            // Filter out already assigned projects
-            const unassignedProjects = projects.filter((project) => !project.assignedTo);
-            projectSelect.innerHTML = `
-      <option value="">Select a project...</option>
-      ${unassignedProjects.map((project) => `
-        <option value="${project.id}">${project.title}</option>
-      `).join('')}
-    `;
+            }
+            // Filter out only currently assigned projects (not completed ones)
+            const availableProjects = projects.filter((project) => {
+                const isAvailable = !project.assignedTo || project.status === 'completed';
+                console.log(`Project ${project.title}: assigned=${!!project.assignedTo}, status=${project.status}, available=${isAvailable}`);
+                return isAvailable;
+            });
+            console.log('Available projects for assignment:', availableProjects.length);
+            // Store current selection
+            const currentValue = projectSelect.value;
+            // Update options
+            if (availableProjects.length === 0) {
+                projectSelect.innerHTML = `
+        <option value="">No available projects to assign</option>
+      `;
+                projectSelect.disabled = true;
+            }
+            else {
+                projectSelect.innerHTML = `
+        <option value="">Select a project...</option>
+        ${availableProjects.map((project) => `
+          <option value="${project.id}">${project.title}</option>
+        `).join('')}
+      `;
+                projectSelect.disabled = false;
+            }
+            // Restore selection if possible
+            if (currentValue) {
+                projectSelect.value = currentValue;
+            }
             // Update project count in dashboard
             const projectCountElement = document.querySelector('.card-total:nth-child(1) h1');
             if (projectCountElement) {
                 projectCountElement.textContent = projects.length.toString();
             }
+            console.log('Projects loaded into select successfully');
         }
         catch (error) {
-            console.error('Error loading projects:', error);
+            console.error('Error loading projects into select:', error);
         }
     });
 }
@@ -678,25 +837,44 @@ function loadUsers() {
         }
     });
 }
-// Update initializeAdmin function to add form submit handler
+// Update initializeAdmin function
 function initializeAdmin() {
     console.log('Initializing admin functionality');
     const token = localStorage.getItem('token');
     console.log('Current token in admin init:', token);
-    // Add form submit handler
-    const assignProjectForm = document.getElementById('assignProjectForm');
-    if (assignProjectForm) {
-        console.log('Assign project form found, adding submit listener');
-        assignProjectForm.addEventListener('submit', handleAssignProjectForm);
+    if (!token) {
+        console.error('No token found in admin init');
+        window.location.href = 'login.html';
+        return;
     }
-    else {
-        console.log('Assign project form not found');
+    try {
+        // Add form submit handler
+        const assignProjectForm = document.getElementById('assignProjectForm');
+        if (assignProjectForm) {
+            console.log('Assign project form found, adding submit listener');
+            assignProjectForm.addEventListener('submit', handleAssignProjectForm);
+        }
+        else {
+            console.log('Assign project form not found');
+        }
+        // Load initial data
+        console.log('Loading initial data...');
+        loadProjects().catch(error => {
+            console.error('Error loading projects:', error);
+        });
+        loadUsers().catch(error => {
+            console.error('Error loading users:', error);
+        });
+        loadProjectsIntoSelect().catch(error => {
+            console.error('Error loading projects into select:', error);
+        });
+        updateDashboardCounts().catch(error => {
+            console.error('Error updating dashboard counts:', error);
+        });
     }
-    // Load initial data
-    loadProjects();
-    loadUsers();
-    loadProjectsIntoSelect();
-    updateDashboardCounts();
+    catch (error) {
+        console.error('Error in initializeAdmin:', error);
+    }
 }
 // Login functionality
 function handleLogin(event) {
@@ -736,7 +914,7 @@ function handleLogin(event) {
         }
     });
 }
-// Add function to handle assign project form submission
+// Update handleAssignProjectForm to refresh the select after assignment
 function handleAssignProjectForm(event) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
@@ -787,9 +965,13 @@ function handleAssignProjectForm(event) {
             // Clear the form
             projectSelect.value = '';
             userSelect.value = '';
-            // Reload projects and update counts
-            yield loadProjects();
-            yield updateDashboardCounts();
+            // Reload all project-related data
+            console.log('7. Reloading project data...');
+            yield Promise.all([
+                loadProjects(),
+                loadProjectsIntoSelect(),
+                updateDashboardCounts()
+            ]);
             alert('Project assigned successfully!');
         }
         catch (error) {
@@ -798,32 +980,44 @@ function handleAssignProjectForm(event) {
         }
     });
 }
-// Add function to update dashboard counts
-function updateDashboardCounts() {
+// Update the updateDashboardCounts function
+function updateDashboardCounts(projects) {
     return __awaiter(this, void 0, void 0, function* () {
         const token = localStorage.getItem('token');
         if (!token)
             return;
         try {
-            const response = yield fetch('http://localhost:3000/projects', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+            let projectsData = [];
+            if (!projects) {
+                const response = yield fetch('http://localhost:3000/projects', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch projects');
                 }
-            });
-            if (!response.ok) {
-                throw new Error('Failed to fetch projects');
+                projectsData = yield response.json();
             }
-            const projects = yield response.json();
+            else {
+                projectsData = projects;
+            }
             // Update total projects count
             const totalProjectsElement = document.querySelector('.card-total:nth-child(1) h1');
             if (totalProjectsElement) {
-                totalProjectsElement.textContent = projects.length.toString();
+                totalProjectsElement.textContent = projectsData.length.toString();
             }
             // Update assigned projects count
-            const assignedProjects = projects.filter((project) => project.assignedTo);
+            const assignedProjects = projectsData.filter((project) => project.assignedTo);
             const assignedProjectsElement = document.querySelector('.card-total:nth-child(3) h1');
             if (assignedProjectsElement) {
                 assignedProjectsElement.textContent = assignedProjects.length.toString();
+            }
+            // Update completed projects count
+            const completedProjects = projectsData.filter((project) => project.status === 'completed');
+            const completedProjectsElement = document.querySelector('.card-total:nth-child(4) h1');
+            if (completedProjectsElement) {
+                completedProjectsElement.textContent = completedProjects.length.toString();
             }
         }
         catch (error) {
@@ -940,5 +1134,148 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+// Update displayCompletedProjects function to show more details
+function displayCompletedProjects(projects) {
+    const completedProjectsList = document.getElementById('completedProjectsList');
+    if (!completedProjectsList)
+        return;
+    // Filter completed projects
+    const completedProjects = projects.filter(project => project.status === 'completed');
+    console.log('Completed projects:', completedProjects.length);
+    if (completedProjects.length === 0) {
+        completedProjectsList.innerHTML = `
+      <div class="no-projects">
+        <i class="fa-regular fa-calendar-check"></i>
+        <p>No completed projects yet</p>
+      </div>
+    `;
+        return;
+    }
+    // Sort completed projects by completion date (newest first)
+    completedProjects.sort((a, b) => {
+        const dateA = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+        const dateB = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+        return dateB - dateA;
+    });
+    completedProjectsList.innerHTML = completedProjects
+        .map((project) => {
+        var _a;
+        return `
+        <div class="project-card completed" data-project-id="${project.id}">
+          <div class="project-header">
+            <h3>${project.title}</h3>
+            <span class="status completed">Completed</span>
+          </div>
+          <p class="description">${project.description}</p>
+          <div class="project-details">
+            <p><i class="fa-solid fa-user"></i> Completed by: ${((_a = project.assignedTo) === null || _a === void 0 ? void 0 : _a.name) || 'Unknown'}</p>
+            <p><i class="fa-regular fa-calendar-check"></i> Completed on: ${formatDate(project.completedAt || '')}</p>
+            <p><i class="fa-regular fa-calendar"></i> Assigned on: ${formatDate(project.assignedAt || '')}</p>
+          </div>
+          <div class="project-actions">
+            <button class="view-btn" data-project-id="${project.id}">View Details</button>
+          </div>
+        </div>
+      `;
+    })
+        .join('');
+    // Add event listeners to view buttons
+    completedProjectsList.querySelectorAll('.view-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const projectId = button.getAttribute('data-project-id');
+            if (projectId) {
+                viewCompletedProjectDetails(parseInt(projectId));
+            }
+        });
+    });
+}
+// Add formatDate helper function if not already present
+function formatDate(dateString) {
+    if (!dateString)
+        return 'Not available';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+// Add function to view completed project details
+function viewCompletedProjectDetails(id) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You need to login first');
+                window.location.href = 'login.html';
+                return;
+            }
+            const response = yield fetch(`http://localhost:3000/projects/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch project details');
+            }
+            const project = yield response.json();
+            // Create and show details modal
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>${project.title}</h2>
+          <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="project-info">
+            <div class="info-section">
+              <h3>Description</h3>
+              <p>${project.description}</p>
+            </div>
+            <div class="info-section">
+              <h3>Status</h3>
+              <span class="status completed">Completed</span>
+            </div>
+            <div class="info-section">
+              <h3>Completion Details</h3>
+              <div class="timeline-info">
+                <p><i class="fa-solid fa-user"></i> Completed by: ${((_a = project.assignedTo) === null || _a === void 0 ? void 0 : _a.name) || 'Unknown'}</p>
+                <p><i class="fa-regular fa-calendar-check"></i> Completed on: ${formatDate(project.completedAt || '')}</p>
+                <p><i class="fa-regular fa-calendar"></i> Assigned on: ${formatDate(project.assignedAt || '')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-close">Close</button>
+        </div>
+      </div>
+    `;
+            document.body.appendChild(modal);
+            // Add event listeners for modal close
+            const closeButtons = modal.querySelectorAll('.close-modal, .btn-close');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    modal.remove();
+                });
+            });
+            // Close modal when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+        catch (error) {
+            console.error('Error viewing completed project:', error);
+            alert('Failed to load project details. Please try again.');
+        }
+    });
+}
 export {};
 //# sourceMappingURL=main.js.map
