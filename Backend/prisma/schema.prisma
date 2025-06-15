@@ -14,24 +14,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model  User {
-  id Int @id @default(autoincrement())
-  name String
-  email String @unique
-  password String
-  role Role
-  assignedProjectId Int? @unique
-  assignedProject Project? @relation(fields: [assignedProjectId], references: [id]) //1:1 relation
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  password     String
+  role         Role     @default(user)
   profileImage String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  project      Project? // One-to-one relation with Project
 }
 
-model  Project {
-  id Int @id @default(autoincrement())
-  name String
+model Project {
+  id          Int      @id @default(autoincrement())
+  title       String
   description String
-  endDate DateTime? @map("end_date")
-  status Status
-  assignedUser User?
+  status      Status   @default(pending)
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  assignedTo  User?    @relation(fields: [userId], references: [id])
+  userId      Int?     @unique // One user can only have one project
 }
 
 enum Role {
@@ -41,6 +45,7 @@ enum Role {
 
 enum Status {
   pending
-  compeleted
+  in_progress
+  completed
 }
 

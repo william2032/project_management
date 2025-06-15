@@ -14,7 +14,7 @@
   <body>
     <main>
       <div style="margin-top: 80px" class="container_form">
-        <form action="" method="post">
+        <form id="loginForm" action="" method="post">
           <div class="ani1">
             <h2 style="letter-spacing: 3px">Welcome Back</h2>
             <lord-icon
@@ -53,6 +53,7 @@
             <div class="input-container">
               <i class="fa-solid fa-user"></i>
               <input
+                id="loginEmail"
                 type="email"
                 name="email"
                 required
@@ -63,6 +64,7 @@
             <div class="input-container">
               <i class="fa-solid fa-lock"></i>
               <input
+                id="loginPassword"
                 type="password"
                 name="password"
                 minlength="8"
@@ -79,7 +81,9 @@
             </div>
           </div>
         </form>
+        <div id="response" class="hidden"></div>
       </div>
     </main>
   </body>
+  <script src="../src/main.js"></script>
 </html>

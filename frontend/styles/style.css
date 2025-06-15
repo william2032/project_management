@@ -425,36 +425,63 @@ nav .right h4:hover {
 }
 /* Form styling for add project */
 .add-project-section {
-    width: 80%;
-    margin: 0 auto;
-
-    
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: -9px 16px 32px -6px rgba(0, 0, 0, 0.1);
 }
+
 .add-project-section form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
   max-width: 600px;
-  margin: 20px auto;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.add-project-section .form-group {
+  margin-bottom: 20px;
+}
+
+.add-project-section label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--primary-color);
+  font-weight: bold;
 }
 
 .add-project-section input,
 .add-project-section textarea {
-  padding: 10px;
+  width: 100%;
+  padding: 12px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.add-project-section textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.add-project-section input:focus,
+.add-project-section textarea:focus {
   outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 2px rgba(0, 155, 214, 0.1);
 }
 
 .add-project-section button {
   background-color: var(--primary-color);
   color: white;
-  padding: 10px 15px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-size: 16px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
 }
+
 .add-project-section button:hover {
   background-color: var(--secondary-color);
-  transition: all 0.5s ease-in-out;
 }
