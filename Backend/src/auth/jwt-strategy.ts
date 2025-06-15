@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
@@ -20,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           // Then check cookies
           const token = req.cookies?.token;
           return typeof token === 'string' ? token : null;
-        }
+        },
       ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET') || 'secret-key',

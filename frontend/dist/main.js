@@ -1176,6 +1176,7 @@ function displayCompletedProjects(projects) {
             <button class="view-btn" data-project-id="${project.id}">View Details</button>
           </div>
         </div>
+
       `;
     })
         .join('');

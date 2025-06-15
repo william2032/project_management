@@ -13,6 +13,7 @@ interface User {
 
 // Admin functionality
 interface Project {
+  assignedAt: string;
   id: number;
   title: string;
   description: string;
@@ -1334,8 +1335,8 @@ function displayCompletedProjects(projects: Project[]) {
             <button class="view-btn" data-project-id="${project.id}">View Details</button>
           </div>
         </div>
-      `
-    )
+
+      `    )
     .join('');
 
   // Add event listeners to view buttons
