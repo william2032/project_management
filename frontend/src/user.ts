@@ -7,86 +7,76 @@ interface Project {
     assignedAt: string;
     assignedBy?: string;
 }
-console.log('User script loaded'); // This should appear in console immediately
-
-// Test basic DOM access
-window.onload = () => {
-    console.log('Window loaded, document should be ready');
-    console.log('Nav element exists:', document.querySelector('nav') !== null);
-};
 
 // Initialize user dashboard
 async function initializeUserDashboard() {
     console.log('Initializing user dashboard');
-    
+
     // Try to get user from localStorage first
     const localUser = JSON.parse(localStorage.getItem('user') || '{}');
     const token = localStorage.getItem('token');
-    
+
     if (!token || !localUser?.id) {
-    //   console.log('No token or user found - redirecting to login');
-      window.location.href = 'login.html';
-      return;
+        //   console.log('No token or user found - redirecting to login');
+        window.location.href = 'login.html';
+        return;
     }
-  
+
     // Verify session with backend
     try {
-    //   console.log('Verifying session with backend');
-      const response = await fetch('http://localhost:3000/users/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include' // Include cookies in the request
-      });
-  
-      console.log('Verification response status:', response.status);
-      
-      if (response.status === 401) {
-        // Token expired or invalid
-        // console.log('Session invalid - clearing storage');
+        const response = await fetch('http://localhost:3000/users/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include' // Include cookies in the request
+        });
+
+        console.log('Verification response status:', response.status);
+
+        if (response.status === 401) {
+            localStorage.clear();
+            document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            window.location.href = 'login.html';
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const user = await response.json();
+        //   console.log('User verified:', user);
+
+        // Update UI with user's information
+        const userNameElement = document.querySelector('#usernameDisplay') as HTMLElement;
+        const userRoleElement = document.querySelector('#userRole') as HTMLElement;
+        const welcomeNameElement = document.querySelector('#welcomeName') as HTMLElement;
+
+        // Use the name from the backend response, fallback to localStorage if needed
+        const displayName = user.name || localUser.name;
+
+        if (userNameElement && displayName) {
+            userNameElement.textContent = displayName;
+        }
+
+        if (userRoleElement && user.role) {
+            userRoleElement.textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+        }
+
+        if (welcomeNameElement && displayName) {
+            welcomeNameElement.textContent = displayName;
+        }
+
+        // Load user projects
+        await loadUserProjects(user.id);
+
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
         localStorage.clear();
         document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         window.location.href = 'login.html';
-        return;
-      }
-  
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-      const user = await response.json();
-    //   console.log('User verified:', user);
-      
-      // Update UI with user's information
-      const userNameElement = document.querySelector('#usernameDisplay');
-      const userRoleElement = document.querySelector('#userRole');
-      const welcomeNameElement = document.querySelector('#welcomeName');
-      
-      // Use the name from the backend response, fallback to localStorage if needed
-      const displayName = user.name || localUser.name;
-      
-      if (userNameElement && displayName) {
-        userNameElement.textContent = displayName;
-      }
-      
-      if (userRoleElement && user.role) {
-        userRoleElement.textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
-      }
-      
-      if (welcomeNameElement && displayName) {
-        welcomeNameElement.textContent = displayName;
-      }
-  
-      // Load user projects
-      await loadUserProjects(user.id);
-      
-    } catch (error) {
-      console.error('Error initializing dashboard:', error);
-      localStorage.clear();
-      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      window.location.href = 'login.html';
     }
 }
 
@@ -96,7 +86,7 @@ function showSection(sectionName: string) {
     document.querySelectorAll('.section').forEach(section => {
         (section as HTMLElement).style.display = 'none';
     });
-    
+
     // Show the requested section
     const targetSection = document.querySelector(`.${sectionName}-section`);
     if (targetSection) {
@@ -107,7 +97,7 @@ function showSection(sectionName: string) {
 // Initialize sidebar navigation
 function initializeSidebarNavigation() {
     console.log('[DEBUG] Initializing sidebar navigation');
-    
+
     // Get sidebar elements
     const sidebarList = document.querySelector('.sidebar ul');
     const sidebarItems = document.querySelectorAll('.sidebar li');
@@ -125,7 +115,7 @@ function initializeSidebarNavigation() {
     sections.forEach(section => {
         (section as HTMLElement).style.display = 'none';
     });
-    
+
     const defaultSection = document.querySelector('.current-projects-section');
     if (defaultSection) {
         (defaultSection as HTMLElement).style.display = 'block';
@@ -160,7 +150,7 @@ function initializeSidebarNavigation() {
         sections.forEach(section => {
             (section as HTMLElement).style.display = 'none';
         });
-        
+
         const targetSection = document.querySelector(`.${section}-section`);
         if (targetSection) {
             (targetSection as HTMLElement).style.display = 'block';
@@ -170,7 +160,7 @@ function initializeSidebarNavigation() {
         // Reload projects
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (user.id) {
-            loadUserProjects(user.id);
+            loadUserProjects(user.id).then(r => console.log('User loaded'));
         }
     });
 }
@@ -178,8 +168,8 @@ function initializeSidebarNavigation() {
 // Initialize logout button
 function initializeLogoutButton() {
     console.log('[DEBUG] Initializing logout button');
-    
-    const logoutButton = document.getElementById('logout');
+
+    const logoutButton = document.getElementById('logout') as HTMLElement;
     if (!logoutButton) {
         console.error('[DEBUG] Logout button not found!');
         return;
@@ -215,15 +205,15 @@ function initializeLogoutButton() {
 async function handleLogout() {
     try {
         console.log('[DEBUG] Starting logout process');
-        
+
         // Get the token before clearing storage
         const token = localStorage.getItem('token');
         console.log('[DEBUG] Token found:', !!token);
-        
+
         // Clear all local storage
         localStorage.clear();
         console.log('[DEBUG] Local storage cleared');
-        
+
         // Clear all cookies
         document.cookie.split(';').forEach(cookie => {
             const [name] = cookie.trim().split('=');
@@ -264,9 +254,9 @@ async function handleLogout() {
 async function loadUserProjects(userId: string) {
     try {
         console.log(`[DEBUG] Loading projects for user ${userId}`);
-        
+
         showLoadingSpinners();
-        
+
         const token = localStorage.getItem('token');
         if (!token) {
             console.error('[DEBUG] No token found - redirecting to login');
@@ -275,7 +265,7 @@ async function loadUserProjects(userId: string) {
         }
 
         // Verify the user data first
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const user = JSON.parse(localStorage.getItem('user') || '{ }');
         if (!user?.id) {
             console.error('[DEBUG] No user data found');
             throw new Error('User data not found');
@@ -291,7 +281,7 @@ async function loadUserProjects(userId: string) {
         });
 
         console.log('[DEBUG] Response status:', response.status);
-        
+
         if (response.status === 401) {
             localStorage.clear();
             window.location.href = 'login.html';
@@ -306,7 +296,7 @@ async function loadUserProjects(userId: string) {
 
         const projects = await response.json();
         console.log('[DEBUG] Projects received:', projects);
-        
+
         // Sort projects by status and date
         const sortedProjects = projects.sort((a: Project, b: Project) => {
             // First sort by status (in_progress first)
@@ -349,13 +339,13 @@ async function loadUserProjects(userId: string) {
 function showLoadingSpinners() {
     const currentSpinner = document.getElementById('currentProjectsSpinner');
     const completedSpinner = document.getElementById('completedProjectsSpinner');
-    
+
     if (currentSpinner) currentSpinner.style.display = 'block';
     if (completedSpinner) completedSpinner.style.display = 'block';
-    
+
     // Clear containers while loading
     const currentContainer = document.getElementById('currentProjectsContainer');
-    const completedContainer = document.getElementById('completedProjectsContainer');
+    const completedContainer = document.getElementById('completedProjectsContainer') as HTMLElement;
     if (currentContainer) currentContainer.innerHTML = '';
     if (completedContainer) completedContainer.innerHTML = '';
 }
@@ -363,7 +353,7 @@ function showLoadingSpinners() {
 function hideLoadingSpinners() {
     const currentSpinner = document.getElementById('currentProjectsSpinner');
     const completedSpinner = document.getElementById('completedProjectsSpinner');
-    
+
     if (currentSpinner) currentSpinner.style.display = 'none';
     if (completedSpinner) completedSpinner.style.display = 'none';
 }
@@ -371,7 +361,7 @@ function hideLoadingSpinners() {
 function displayNoProjectsMessage() {
     const currentProjectsContainer = document.getElementById('currentProjectsContainer');
     const completedProjectsContainer = document.getElementById('completedProjectsContainer');
-    
+
     if (currentProjectsContainer) {
         currentProjectsContainer.innerHTML = `
             <div class="no-projects">
@@ -380,7 +370,7 @@ function displayNoProjectsMessage() {
             </div>
         `;
     }
-    
+
     if (completedProjectsContainer) {
         completedProjectsContainer.innerHTML = `
             <div class="no-projects">
@@ -394,18 +384,18 @@ function displayNoProjectsMessage() {
 function displayErrorMessage(message: string) {
     const currentProjectsContainer = document.getElementById('currentProjectsContainer');
     const completedProjectsContainer = document.getElementById('completedProjectsContainer');
-    
+
     const errorHtml = `
         <div class="error-message">
             <i class="fa-solid fa-exclamation-triangle"></i>
             <p>Error: ${message}</p>
         </div>
     `;
-    
+
     if (currentProjectsContainer) {
         currentProjectsContainer.innerHTML = errorHtml;
     }
-    
+
     if (completedProjectsContainer) {
         completedProjectsContainer.innerHTML = errorHtml;
     }
@@ -415,7 +405,7 @@ function displayErrorMessage(message: string) {
 function displayProjects(projects: Project[]) {
     const currentProjectsContainer = document.getElementById('currentProjectsContainer');
     const completedProjectsContainer = document.getElementById('completedProjectsContainer');
-    
+
     if (!currentProjectsContainer || !completedProjectsContainer) {
         // console.error('Project containers not found');
         return;
@@ -462,7 +452,7 @@ function displayProjects(projects: Project[]) {
     // Update project counts
     const currentCount = document.getElementById('currentProjectsCount');
     const completedCount = document.getElementById('completedProjectsCount');
-    
+
     if (currentCount) {
         currentCount.textContent = currentProjects.length.toString();
     }
@@ -475,12 +465,12 @@ function displayProjects(projects: Project[]) {
 function createProjectCard(project: Project, isCompleted = false): HTMLElement {
     const card = document.createElement('div');
     card.className = 'project-card';
-    
+
     const statusClass = isCompleted ? 'status-completed' : 'status-in-progress';
     const statusText = isCompleted ? 'Completed' : 'In Progress';
     const assignedDate = formatDate(project.assignedAt);
     const dueDate = project.dueDate ? formatDate(project.dueDate) : null;
-    
+
     card.innerHTML = `
         <h3>${project.title}</h3>
         <span class="status ${statusClass}">${statusText}</span>
@@ -503,7 +493,7 @@ function createProjectCard(project: Project, isCompleted = false): HTMLElement {
             </button>
         </div>
     `;
-    
+
     // Add event listeners
     if (!isCompleted) {
         const completeBtn = card.querySelector('.btn-complete');
@@ -514,7 +504,7 @@ function createProjectCard(project: Project, isCompleted = false): HTMLElement {
             });
         }
     }
-    
+
     const viewBtn = card.querySelector('.btn-view');
     if (viewBtn) {
         viewBtn.addEventListener('click', (e) => {
@@ -522,21 +512,21 @@ function createProjectCard(project: Project, isCompleted = false): HTMLElement {
             viewProjectDetails(project.id);
         });
     }
-    
+
     // Make entire card clickable if needed
     card.addEventListener('click', () => {
         viewProjectDetails(project.id);
     });
-    
+
     return card;
 }
 
 // Format date for display
 function formatDate(dateString: string): string {
     try {
-        const options: Intl.DateTimeFormatOptions = { 
-            year: 'numeric', 
-            month: 'short', 
+        const options: Intl.DateTimeFormatOptions = {
+            year: 'numeric',
+            month: 'short',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
@@ -557,7 +547,7 @@ async function viewProjectDetails(projectId: string) {
         }
 
         // Show loading state in modal
-        const modal = document.getElementById('projectModal');
+        const modal = document.getElementById('projectModal') as HTMLElement;
         const modalBody = modal?.querySelector('.modal-body');
         if (modal && modalBody) {
             modal.classList.add('show');
@@ -572,7 +562,7 @@ async function viewProjectDetails(projectId: string) {
         // First try to get project from the projects list
         const projectCard = document.querySelector(`[data-project-id="${projectId}"]`)?.closest('.project-card');
         let project;
-        
+
         if (projectCard) {
             // Extract project data from the card
             project = {
@@ -599,7 +589,7 @@ async function viewProjectDetails(projectId: string) {
 
             project = await response.json();
         }
-        
+
         // Update modal content
         if (modal && modalBody) {
             modalBody.innerHTML = `
@@ -668,7 +658,7 @@ async function viewProjectDetails(projectId: string) {
 // Mark project as complete
 async function markProjectComplete(projectId: string) {
     if (!confirm('Are you sure you want to mark this project as complete?')) return;
-    
+
     try {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -710,19 +700,19 @@ async function markProjectComplete(projectId: string) {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (user.id) {
             await loadUserProjects(user.id);
-            
+
             // Switch to completed projects tab
             const completedTab = document.querySelector('.sidebar li[data-section="completed-projects"]');
             if (completedTab) {
                 // Hide all sections
                 document.querySelectorAll('.section').forEach(s => (s as HTMLElement).style.display = 'none');
-                
+
                 // Show completed projects section
                 const completedSection = document.querySelector('.completed-projects-section');
                 if (completedSection) {
                     (completedSection as HTMLElement).style.display = 'block';
                 }
-                
+
                 // Update active tab
                 document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
                 completedTab.classList.add('active');
@@ -751,17 +741,17 @@ async function markProjectComplete(projectId: string) {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[DEBUG] DOM fully loaded');
-    
+
     // Initialize components
     initializeUserDashboard();
     initializeSidebarNavigation();
     initializeLogoutButton();
-    
+
     // Add click handler for project cards
     document.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
         const projectCard = target.closest('.project-card');
-        
+
         if (projectCard) {
             const projectId = projectCard.getAttribute('data-project-id');
             if (projectId) {
@@ -774,7 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add modal close handlers
     const modal = document.getElementById('projectModal');
     const closeButtons = modal?.querySelectorAll('.close-modal, .btn-close');
-    
+
     closeButtons?.forEach(button => {
         button.addEventListener('click', () => {
             modal?.classList.remove('show');

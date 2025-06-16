@@ -1,180 +1,181 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <script
-      src="https://kit.fontawesome.com/71bcccf63f.js"
-      crossorigin="anonymous"
+            src="https://kit.fontawesome.com/71bcccf63f.js"
+            crossorigin="anonymous"
     ></script>
-    <link rel="stylesheet" href="../styles/style.css" />
+    <link rel="stylesheet" href="../styles/style.css"/>
     <title>Admin || Panel</title>
-  </head>
-  <body>
-    <nav>
-      <div class="left">
+</head>
+<body>
+<nav>
+    <div class="left">
         <h1>ProjectsPlace</h1>
-      </div>
-      <div class="right">
+    </div>
+    <div class="right">
         <i class="fa-regular fa-user"></i>
         <h4>Admin</h4>
         <div id="logout" style="cursor: pointer" class="logout">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i>
-          <p>logout</p>
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <p>logout</p>
         </div>
-      </div>
-    </nav>
-    <div class="parent">
-      <div class="sidebar">
+    </div>
+</nav>
+<div class="parent">
+    <div class="sidebar">
         <ul>
-          <li data-section="dashboard">
-            <i class="fa-solid fa-gauge-high"></i>
-            <p>Dashboard</p>
-          </li>
-          <li data-section="users">
-            <i class="fa-solid fa-user"></i>
-            <p>Users</p>
-          </li>
-          <li data-section="projects">
-            <i class="fa-solid fa-folder"></i>
-            <p>Projects</p>
-          </li>
-          <li data-section="completed-projects">
-            <i class="fa-solid fa-check-circle"></i>
-            <p>Completed Projects</p>
-          </li>
-          <li data-section="add-project">
-            <i class="fa-solid fa-plus"></i>
-            <p>Add Project</p>
-          </li>
+            <li data-section="dashboard">
+                <i class="fa-solid fa-gauge-high"></i>
+                <p>Dashboard</p>
+            </li>
+            <li data-section="users">
+                <i class="fa-solid fa-user"></i>
+                <p>Users</p>
+            </li>
+            <li data-section="projects">
+                <i class="fa-solid fa-folder"></i>
+                <p>Projects</p>
+            </li>
+            <li data-section="completed-projects">
+                <i class="fa-solid fa-check-circle"></i>
+                <p>Completed Projects</p>
+            </li>
+            <li data-section="add-project">
+                <i class="fa-solid fa-plus"></i>
+                <p>Add Project</p>
+            </li>
         </ul>
-      </div>
+    </div>
 
-      <div class="content">
+    <div class="content">
         <!-- Dashboard Section -->
         <div class="section dashboard-section" style="display: block">
-          <div style="display: block; text-align: center" class="head">
-            <h1 style="font-size: 2rem">Dashboard</h1>
-            <p style="font-size: 1.5rem">Projects Place</p>
-          </div>
+            <div style="display: block; text-align: center" class="head">
+                <h1 style="font-size: 2rem">Dashboard</h1>
+                <p style="font-size: 1.5rem">Projects Place</p>
+            </div>
 
-          <div class="total">
-            <div class="card-total">
-              
-              <div class="total-content">
-                <h1 >20</h1>
-                <div class="down">
-                  <i class="fa-solid fa-folder"></i> 
-                  <p>Projects</p>
+            <div class="total">
+                <div class="card-total">
+
+                    <div class="total-content">
+                        <h1>20</h1>
+                        <div class="down">
+                            <i class="fa-solid fa-folder"></i>
+                            <p>Projects</p>
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-            <div class="card-total">
-              
-              <div class="total-content">
-                <div class="down"></div>
-                <h1>20</h1>
-                <div class="down">
-                  <i class="fa-solid fa-user"></i>
-                  <p>Registered Users</p>
+                <div class="card-total">
+
+                    <div class="total-content">
+                        <div class="down"></div>
+                        <h1>20</h1>
+                        <div class="down">
+                            <i class="fa-solid fa-user"></i>
+                            <p>Registered Users</p>
+                        </div>
+
+                    </div>
                 </div>
-                
-              </div>
-            </div>
-            <div class="card-total">
-              
-              <div class="total-content">
-                <h1>2</h1>
-                <div class="down">
-                  <i class="fa-solid fa-check"></i>
-                  <p>Assigned Projects</p>
+                <div class="card-total">
+
+                    <div class="total-content">
+                        <h1>2</h1>
+                        <div class="down">
+                            <i class="fa-solid fa-check"></i>
+                            <p>Assigned Projects</p>
+                        </div>
+
+                    </div>
                 </div>
-                
-              </div>
             </div>
-          </div>
-          <hr>
-          <div class="assign-projects">
-            <h1>Assign Projects</h1>
-            <div id="assignProject" class="assign-project-form">
-              <form id="assignProjectForm">
-                <div class="form-group">
-                  <select id="projectSelect" required>
-                    <option value="">Select a project</option>
-                    <!-- Options will be populated here -->
-                  </select>
-                  <select id="userSelect" required>
-                    <option value="">Select a user</option>
-                    <!-- Options will be populated here -->
-                  </select>
+            <hr>
+            <div class="assign-projects">
+                <h1>Assign Projects</h1>
+                <div id="assignProject" class="assign-project-form">
+                    <form id="assignProjectForm">
+                        <div class="form-group">
+                            <select id="projectSelect" required>
+                                <option value="">Select a project</option>
+                                <!-- Options will be populated here -->
+                            </select>
+                            <select id="userSelect" required>
+                                <option value="">Select a user</option>
+                                <!-- Options will be populated here -->
+                            </select>
+                        </div>
+                        <button type="submit">Assign Project</button>
+                    </form>
                 </div>
-                <button type="submit">Assign Project</button>
-              </form>
             </div>
-          </div>
         </div>
 
         <!-- Users Section -->
         <div class="section users-section" style="display: none">
-          <div class="section-header">
-            <h1>All Users</h1>
-            <div class="search-container">
-              <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
-              <i class="fa-solid fa-search search-icon"></i>
+            <div class="section-header">
+                <h1>All Users</h1>
+                <div class="search-container">
+                    <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
+                    <i class="fa-solid fa-search search-icon"></i>
+                </div>
             </div>
-          </div>
-          <div id="usersTable">
-            <!-- User cards will be loaded here -->
-          </div>
+            <div id="usersTable">
+                <!-- User cards will be loaded here -->
+            </div>
         </div>
-        
+
 
         <!-- Projects Section -->
         <div class="section projects-section" style="display: none">
-          <div class="section-header">
-            <h1>All Projects</h1>
-            <div class="search-container">
-              <input type="text" id="projectSearch" placeholder="Search projects..." class="search-input">
-              <i class="fa-solid fa-search search-icon"></i>
+            <div class="section-header">
+                <h1>All Projects</h1>
+                <div class="search-container">
+                    <input type="text" id="projectSearch" placeholder="Search projects..." class="search-input">
+                    <i class="fa-solid fa-search search-icon"></i>
+                </div>
             </div>
-          </div>
-          <div class="projects-cards" id="projectsList">
-            <!-- Projects will be inserted here -->
-          </div>
+            <div class="projects-cards" id="projectsList">
+                <!-- Projects will be inserted here -->
+            </div>
         </div>
 
         <!-- Completed Projects Section -->
         <div class="section completed-projects-section" style="display: none">
-          <div class="section-header">
-            <h1>Completed Projects</h1>
-            <div class="search-container">
-              <input type="text" id="completedProjectSearch" placeholder="Search completed projects..." class="search-input">
-              <i class="fa-solid fa-search search-icon"></i>
+            <div class="section-header">
+                <h1>Completed Projects</h1>
+                <div class="search-container">
+                    <input type="text" id="completedProjectSearch" placeholder="Search completed projects..."
+                           class="search-input">
+                    <i class="fa-solid fa-search search-icon"></i>
+                </div>
             </div>
-          </div>
-          <div class="completed-projects-container" id="completedProjectsList">
-            <!-- Completed projects will be loaded here -->
-          </div>
+            <div class="completed-projects-container" id="completedProjectsList">
+                <!-- Completed projects will be loaded here -->
+            </div>
         </div>
 
         <!-- Add Project Section -->
         <div class="section add-project-section" style="display: none">
-          <h2>Add New Project</h2>
-          <form id="addProjectForm">
-            <div class="form-group">
-              <label for="title">Title</label>
-              <input type="text" id="title" name="title" required>
-            </div>
-            <div class="form-group">
-              <label for="description">Description</label>
-              <textarea id="description" name="description" required></textarea>
-            </div>
-            <button type="submit">Add Project</button>
-          </form>
+            <h2>Add New Project</h2>
+            <form id="addProjectForm">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" required></textarea>
+                </div>
+                <button type="submit">Add Project</button>
+            </form>
         </div>
-      </div>
     </div>
+</div>
 
-    <script src="../dist/main.js" type="module"></script>
-  </body>
+<script src="../dist/main.js" type="module"></script>
+</body>
 </html>
