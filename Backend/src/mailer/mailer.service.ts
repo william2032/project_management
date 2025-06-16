@@ -25,6 +25,7 @@ export interface WelcomeEmailContext {
 }
 @Injectable()
 export class MailerService {
+  [x: string]: any;
   private readonly logger = new Logger(MailerService.name);
   private transporter: nodemailer.Transporter;
   private templatesPath: string;
