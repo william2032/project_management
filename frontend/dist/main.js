@@ -857,6 +857,8 @@ function initializeAdmin() {
         else {
             console.log('Assign project form not found');
         }
+        // Initialize search functionality
+        initializeSearch();
         // Load initial data
         console.log('Loading initial data...');
         loadProjects().catch(error => {
@@ -879,38 +881,63 @@ function initializeAdmin() {
 // Login functionality
 function handleLogin(event) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
         event.preventDefault();
         const form = event.target;
         const email = form.querySelector('#loginEmail').value;
         const password = form.querySelector('#loginPassword').value;
         try {
+            console.log('Attempting login for:', email);
             const response = yield fetch('http://localhost:3000/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ email, password }),
+                credentials: 'include' // Add this to handle cookies
             });
-            if (!response.ok) {
-                const errorText = yield response.text();
-                throw new Error('Login failed: ' + errorText);
-            }
             const data = yield response.json();
+            if (!response.ok) {
+                // Handle specific error cases
+                if (response.status === 401) {
+                    throw new Error('Invalid email or password. Please try again.');
+                }
+                else if (response.status === 404) {
+                    throw new Error('User not found. Please register first.');
+                }
+                else {
+                    throw new Error(data.message || 'Login failed. Please try again.');
+                }
+            }
             // Store the token and user data
             localStorage.setItem('token', data.access_token);
             localStorage.setItem('user', JSON.stringify(data.user));
-            // Redirect based on user role
-            if (((_a = data.user) === null || _a === void 0 ? void 0 : _a.role) === 'admin') {
-                window.location.href = 'admin.html';
-            }
-            else {
-                window.location.href = 'user.html';
-            }
+            // Show success message
+            const successMessage = document.createElement('div');
+            successMessage.className = 'success-message';
+            successMessage.textContent = 'Login successful! Redirecting...';
+            document.body.appendChild(successMessage);
+            // Redirect based on user role after a short delay
+            setTimeout(() => {
+                var _a;
+                if (((_a = data.user) === null || _a === void 0 ? void 0 : _a.role) === 'admin') {
+                    window.location.href = 'admin.html';
+                }
+                else {
+                    window.location.href = 'user.html';
+                }
+            }, 1000);
         }
         catch (error) {
             console.error('Login error:', error);
-            alert('Login failed. Please check your credentials.');
+            // Show error message to user
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.textContent = error instanceof Error ? error.message : 'Login failed. Please try again.';
+            document.body.appendChild(errorMessage);
+            // Remove error message after 3 seconds
+            setTimeout(() => {
+                errorMessage.remove();
+            }, 3000);
         }
     });
 }
@@ -1078,15 +1105,6 @@ function initializeUserDashboard() {
     const userNameElement = document.querySelector('.right h4');
     if (userNameElement && user.name) {
         userNameElement.textContent = user.name;
-    }
-    // Initialize logout button - THIS IS THE CRUCIAL PART
-    const logoutButton = document.getElementById('logout');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', handleLogout);
-        console.log('Logout button initialized'); // For debugging
-    }
-    else {
-        console.error('Logout button not found'); // For debugging
     }
     // Load user-specific content
     if (user.id) {
@@ -1277,6 +1295,77 @@ function viewCompletedProjectDetails(id) {
             alert('Failed to load project details. Please try again.');
         }
     });
+}
+// Add search functionality
+function initializeSearch() {
+    // User search
+    const userSearch = document.getElementById('userSearch');
+    if (userSearch) {
+        userSearch.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const userCards = document.querySelectorAll('.user-card');
+            userCards.forEach(card => {
+                var _a, _b, _c, _d, _e, _f;
+                const userName = ((_b = (_a = card.querySelector('.user-name')) === null || _a === void 0 ? void 0 : _a.textContent) === null || _b === void 0 ? void 0 : _b.toLowerCase()) || '';
+                const userEmail = ((_d = (_c = card.querySelector('.user-email')) === null || _c === void 0 ? void 0 : _c.textContent) === null || _d === void 0 ? void 0 : _d.toLowerCase()) || '';
+                const userRole = ((_f = (_e = card.querySelector('.user-role')) === null || _e === void 0 ? void 0 : _e.textContent) === null || _f === void 0 ? void 0 : _f.toLowerCase()) || '';
+                if (userName.includes(searchTerm) || userEmail.includes(searchTerm) || userRole.includes(searchTerm)) {
+                    card.style.display = 'block';
+                }
+                else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+    // Project search
+    const projectSearch = document.getElementById('projectSearch');
+    if (projectSearch) {
+        projectSearch.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const projectCards = document.querySelectorAll('.project-card:not(.completed)');
+            projectCards.forEach(card => {
+                var _a, _b, _c, _d, _e, _f, _g, _h;
+                const projectTitle = ((_b = (_a = card.querySelector('h3')) === null || _a === void 0 ? void 0 : _a.textContent) === null || _b === void 0 ? void 0 : _b.toLowerCase()) || '';
+                const projectDescription = ((_d = (_c = card.querySelector('.description')) === null || _c === void 0 ? void 0 : _c.textContent) === null || _d === void 0 ? void 0 : _d.toLowerCase()) || '';
+                const projectStatus = ((_f = (_e = card.querySelector('.status')) === null || _e === void 0 ? void 0 : _e.textContent) === null || _f === void 0 ? void 0 : _f.toLowerCase()) || '';
+                const assignedTo = ((_h = (_g = card.querySelector('.assigned-user')) === null || _g === void 0 ? void 0 : _g.textContent) === null || _h === void 0 ? void 0 : _h.toLowerCase()) || '';
+                if (projectTitle.includes(searchTerm) ||
+                    projectDescription.includes(searchTerm) ||
+                    projectStatus.includes(searchTerm) ||
+                    assignedTo.includes(searchTerm)) {
+                    card.style.display = 'block';
+                }
+                else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+    // Completed project search
+    const completedProjectSearch = document.getElementById('completedProjectSearch');
+    if (completedProjectSearch) {
+        completedProjectSearch.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const completedProjectCards = document.querySelectorAll('.project-card.completed');
+            completedProjectCards.forEach(card => {
+                var _a, _b, _c, _d, _e, _f, _g, _h;
+                const projectTitle = ((_b = (_a = card.querySelector('h3')) === null || _a === void 0 ? void 0 : _a.textContent) === null || _b === void 0 ? void 0 : _b.toLowerCase()) || '';
+                const projectDescription = ((_d = (_c = card.querySelector('.description')) === null || _c === void 0 ? void 0 : _c.textContent) === null || _d === void 0 ? void 0 : _d.toLowerCase()) || '';
+                const completedBy = ((_f = (_e = card.querySelector('.project-details p:first-child')) === null || _e === void 0 ? void 0 : _e.textContent) === null || _f === void 0 ? void 0 : _f.toLowerCase()) || '';
+                const completedDate = ((_h = (_g = card.querySelector('.project-details p:nth-child(2)')) === null || _g === void 0 ? void 0 : _g.textContent) === null || _h === void 0 ? void 0 : _h.toLowerCase()) || '';
+                if (projectTitle.includes(searchTerm) ||
+                    projectDescription.includes(searchTerm) ||
+                    completedBy.includes(searchTerm) ||
+                    completedDate.includes(searchTerm)) {
+                    card.style.display = 'block';
+                }
+                else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
 }
 export {};
 //# sourceMappingURL=main.js.map

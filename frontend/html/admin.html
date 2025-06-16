@@ -13,7 +13,7 @@
   <body>
     <nav>
       <div class="left">
-        <h1>ProjectsHub</h1>
+        <h1>ProjectsPlace</h1>
       </div>
       <div class="right">
         <i class="fa-regular fa-user"></i>
@@ -116,7 +116,13 @@
 
         <!-- Users Section -->
         <div class="section users-section" style="display: none">
-          <h1>All Users</h1>
+          <div class="section-header">
+            <h1>All Users</h1>
+            <div class="search-container">
+              <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
+              <i class="fa-solid fa-search search-icon"></i>
+            </div>
+          </div>
           <div id="usersTable">
             <!-- User cards will be loaded here -->
           </div>
@@ -125,7 +131,13 @@
 
         <!-- Projects Section -->
         <div class="section projects-section" style="display: none">
-          <h1>All Projects</h1>
+          <div class="section-header">
+            <h1>All Projects</h1>
+            <div class="search-container">
+              <input type="text" id="projectSearch" placeholder="Search projects..." class="search-input">
+              <i class="fa-solid fa-search search-icon"></i>
+            </div>
+          </div>
           <div class="projects-cards" id="projectsList">
             <!-- Projects will be inserted here -->
           </div>
@@ -133,7 +145,13 @@
 
         <!-- Completed Projects Section -->
         <div class="section completed-projects-section" style="display: none">
-          <h1>Completed Projects</h1>
+          <div class="section-header">
+            <h1>Completed Projects</h1>
+            <div class="search-container">
+              <input type="text" id="completedProjectSearch" placeholder="Search completed projects..." class="search-input">
+              <i class="fa-solid fa-search search-icon"></i>
+            </div>
+          </div>
           <div class="completed-projects-container" id="completedProjectsList">
             <!-- Completed projects will be loaded here -->
           </div>
