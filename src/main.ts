@@ -389,7 +389,7 @@ async function viewUserProfile(userId: number) {
       if (e.target === modal) {
         modal.remove();
       }
-    });
+  });
   } catch (error) {
     console.error('Error viewing user profile:', error);
     alert('Failed to load user profile. Please try again.');
@@ -622,26 +622,26 @@ async function loadProjects(): Promise<void> {
 
     // Filter active projects
     const activeProjects = projects.filter((project: Project) => project.status !== 'completed');
-    console.log('8. Active projects:', activeProjects.length);
+    // console.log('8. Active projects:', activeProjects.length);
 
     projectsList.innerHTML = activeProjects
       .map(
         (project: Project) => `
-          <div class="project-card" data-project-id="${project.id}">
-            <h3>${project.title}</h3>
-            <p>${project.description}</p>
-            <p>Status: ${project.assignedTo ? 'In Progress' : 'Not Assigned'}</p>
-            <p>Assigned to: ${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</p>
-            <div class="project-actions">
-              <button class="edit-btn" data-project-id="${project.id}">Edit</button>
-              <button class="delete-btn" data-project-id="${project.id}">Delete</button>
-            </div>
+        <div class="project-card" data-project-id="${project.id}">
+          <h3>${project.title}</h3>
+          <p>${project.description}</p>
+          <p>Status: ${project.assignedTo ? 'In Progress' : 'Not Assigned'}</p>
+          <p>Assigned to: ${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</p>
+          <div class="project-actions">
+            <button class="edit-btn" data-project-id="${project.id}">Edit</button>
+            <button class="delete-btn" data-project-id="${project.id}">Delete</button>
           </div>
-        `
+        </div>
+      `
       )
       .join('');
 
-    console.log('9. Active projects rendered to DOM');
+    // console.log('9. Active projects rendered to DOM');
 
     // Add event listeners to buttons
     projectsList.querySelectorAll('.edit-btn').forEach(button => {
@@ -734,7 +734,7 @@ async function editProject(id: number) {
             <label for="editStatus">Status</label>
             <select id="editStatus" name="status">
               <option value="in_progress" ${project.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-              <option value="completed" ${project.status === 'completed' ? 'selected' : ''}>Completed</option>
+              
             </select>
           </div>
           <div class="form-actions">
@@ -902,12 +902,12 @@ async function loadProjectsIntoSelect(): Promise<void> {
       `;
       projectSelect.disabled = true;
     } else {
-      projectSelect.innerHTML = `
-        <option value="">Select a project...</option>
+    projectSelect.innerHTML = `
+      <option value="">Select a project...</option>
         ${availableProjects.map((project: Project) => `
-          <option value="${project.id}">${project.title}</option>
-        `).join('')}
-      `;
+        <option value="${project.id}">${project.title}</option>
+      `).join('')}
+    `;
       projectSelect.disabled = false;
     }
 
@@ -953,15 +953,18 @@ async function loadUsers(): Promise<void> {
     const userSelect = document.getElementById('userSelect') as HTMLSelectElement;
     if (!userSelect) return;
 
+    // Filter out admin users - only show normal users
+    const normalUsers = users.filter(user => user.role !== 'admin');
+    
     userSelect.innerHTML = `
       <option value="">Select a user...</option>
-      ${users
-        .map(
-          (user) => `
-          <option value="${user.id}">${user.name} (${user.email})</option>
-        `
-        )
-        .join('')}
+      ${normalUsers
+      .map(
+        (user) => `
+        <option value="${user.id}">${user.name} (${user.email})</option>
+      `
+      )
+      .join('')}
     `;
   } catch (error) {
     console.error('Error loading users:', error);
@@ -981,19 +984,19 @@ function initializeAdmin(): void {
   }
 
   try {
-    // Add form submit handler
-    const assignProjectForm = document.getElementById('assignProjectForm');
-    if (assignProjectForm) {
-      console.log('Assign project form found, adding submit listener');
-      assignProjectForm.addEventListener('submit', handleAssignProjectForm);
-    } else {
-      console.log('Assign project form not found');
-    }
+  // Add form submit handler
+  const assignProjectForm = document.getElementById('assignProjectForm');
+  if (assignProjectForm) {
+    console.log('Assign project form found, adding submit listener');
+    assignProjectForm.addEventListener('submit', handleAssignProjectForm);
+  } else {
+    console.log('Assign project form not found');
+  }
 
     // Initialize search functionality
     initializeSearch();
 
-    // Load initial data
+  // Load initial data
     console.log('Loading initial data...');
     loadProjects().catch(error => {
       console.error('Error loading projects:', error);
@@ -1045,9 +1048,9 @@ async function handleLogin(event: Event): Promise<void> {
         throw new Error('User not found. Please register first.');
       } else {
         throw new Error(data.message || 'Login failed. Please try again.');
-      }
     }
-
+    }
+    
     // Store the token and user data
     localStorage.setItem('token', data.access_token);
     localStorage.setItem('user', JSON.stringify(data.user));
@@ -1060,11 +1063,11 @@ async function handleLogin(event: Event): Promise<void> {
 
     // Redirect based on user role after a short delay
     setTimeout(() => {
-      if (data.user?.role === 'admin') {
-        window.location.href = 'admin.html';
-      } else {
-        window.location.href = 'user.html';
-      }
+    if (data.user?.role === 'admin') {
+      window.location.href = 'admin.html';
+    } else {
+      window.location.href = 'user.html';
+    }
     }, 1000);
 
   } catch (error) {
@@ -1166,15 +1169,15 @@ async function updateDashboardCounts(projects?: Project[]): Promise<void> {
   try {
     let projectsData: Project[] = [];
     if (!projects) {
-      const response = await fetch('http://localhost:3000/projects', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch projects');
+    const response = await fetch('http://localhost:3000/projects', {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch projects');
+    }
 
       projectsData = await response.json();
     } else {

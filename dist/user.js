@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-console.log('User script loaded'); // This should appear in console immediately
 // Test basic DOM access
 window.onload = () => {
     console.log('Window loaded, document should be ready');
@@ -164,7 +163,7 @@ function initializeLogoutButton() {
     newLogoutButton.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
         console.log('[DEBUG] Logout button clicked');
         e.preventDefault();
-        e.stopPropagation(); // Prevent event bubbling
+        e.stopPropagation();
         yield handleLogout();
     }));
     // Add keyboard handler

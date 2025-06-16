@@ -7,7 +7,7 @@ interface Project {
     assignedAt: string;
     assignedBy?: string;
 }
-console.log('User script loaded'); // This should appear in console immediately
+
 
 // Test basic DOM access
 window.onload = () => {
@@ -195,7 +195,7 @@ function initializeLogoutButton() {
     newLogoutButton.addEventListener('click', async (e) => {
         console.log('[DEBUG] Logout button clicked');
         e.preventDefault();
-        e.stopPropagation(); // Prevent event bubbling
+        e.stopPropagation(); 
         await handleLogout();
     });
 

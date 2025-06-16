@@ -524,22 +524,22 @@ function loadProjects() {
             }
             // Filter active projects
             const activeProjects = projects.filter((project) => project.status !== 'completed');
-            console.log('8. Active projects:', activeProjects.length);
+            // console.log('8. Active projects:', activeProjects.length);
             projectsList.innerHTML = activeProjects
                 .map((project) => `
-          <div class="project-card" data-project-id="${project.id}">
-            <h3>${project.title}</h3>
-            <p>${project.description}</p>
-            <p>Status: ${project.assignedTo ? 'In Progress' : 'Not Assigned'}</p>
-            <p>Assigned to: ${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</p>
-            <div class="project-actions">
-              <button class="edit-btn" data-project-id="${project.id}">Edit</button>
-              <button class="delete-btn" data-project-id="${project.id}">Delete</button>
-            </div>
+        <div class="project-card" data-project-id="${project.id}">
+          <h3>${project.title}</h3>
+          <p>${project.description}</p>
+          <p>Status: ${project.assignedTo ? 'In Progress' : 'Not Assigned'}</p>
+          <p>Assigned to: ${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</p>
+          <div class="project-actions">
+            <button class="edit-btn" data-project-id="${project.id}">Edit</button>
+            <button class="delete-btn" data-project-id="${project.id}">Delete</button>
           </div>
-        `)
+        </div>
+      `)
                 .join('');
-            console.log('9. Active projects rendered to DOM');
+            // console.log('9. Active projects rendered to DOM');
             // Add event listeners to buttons
             projectsList.querySelectorAll('.edit-btn').forEach(button => {
                 button.addEventListener('click', () => {
@@ -623,7 +623,7 @@ function editProject(id) {
             <label for="editStatus">Status</label>
             <select id="editStatus" name="status">
               <option value="in_progress" ${project.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-              <option value="completed" ${project.status === 'completed' ? 'selected' : ''}>Completed</option>
+              
             </select>
           </div>
           <div class="form-actions">
@@ -775,11 +775,11 @@ function loadProjectsIntoSelect() {
             }
             else {
                 projectSelect.innerHTML = `
-        <option value="">Select a project...</option>
+      <option value="">Select a project...</option>
         ${availableProjects.map((project) => `
-          <option value="${project.id}">${project.title}</option>
-        `).join('')}
-      `;
+        <option value="${project.id}">${project.title}</option>
+      `).join('')}
+    `;
                 projectSelect.disabled = false;
             }
             // Restore selection if possible
@@ -823,12 +823,14 @@ function loadUsers() {
             const userSelect = document.getElementById('userSelect');
             if (!userSelect)
                 return;
+            // Filter out admin users - only show normal users
+            const normalUsers = users.filter(user => user.role !== 'admin');
             userSelect.innerHTML = `
       <option value="">Select a user...</option>
-      ${users
+      ${normalUsers
                 .map((user) => `
-          <option value="${user.id}">${user.name} (${user.email})</option>
-        `)
+        <option value="${user.id}">${user.name} (${user.email})</option>
+      `)
                 .join('')}
     `;
         }
