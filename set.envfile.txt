@@ -1,0 +1,6 @@
+# JWT CONFIG
+JWT_SECRET=your_super_secret_key
+JWT_EXPIRES_IN=3600s
+
+# DATABASE CONFIG (PostgreSQL example)
+DATABASE_URL="postgresql://your_user:your_password@localhost:5432/your_db_name?schema=public"
