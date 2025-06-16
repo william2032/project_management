@@ -7,7 +7,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// Add debug logs at the start of the file
 console.log('Script loaded successfully');
 // Global logout function
 function handleLogout(e) {
@@ -19,7 +18,6 @@ function handleLogout(e) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.clear();
-    // Redirect to login page
     window.location.href = 'login.html';
 }
 // Initialize logout button when DOM is loaded
