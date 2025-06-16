@@ -29,7 +29,10 @@ export class MailerService {
   private transporter: nodemailer.Transporter;
   private templatesPath: string;
 
-  constructor(private configService: ConfigService) {}
+  constructor(private configService: ConfigService) {
+    this.templatesPath = path.join(__dirname, '../templates/email');
+    this.initializeTransporter();
+  }
   private initializeTransporter() {
     const smtpConfig = {
       host: this.configService.get<string>('SMTP_HOST', 'smtp.gmail.com'),
