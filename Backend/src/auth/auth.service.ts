@@ -1,10 +1,14 @@
-import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service';
+import { LoginUserDto } from '../users/dtos/login-user.dto';
+import { RegisterUserDto } from '../users/dtos/register-user.dto';
 import { UsersService } from '../users/users.service';
 import { CustomJwtService } from './jwt.service';
-import { LoginUserDto } from '../users/dtos/login-user.dto';
-import { PrismaService } from '../prisma/prisma.service';
-import { RegisterUserDto } from '../users/dtos/register-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +22,7 @@ export class AuthService {
 
   async register(userData: RegisterUserDto) {
     console.log('Auth Service - Registering user:', { email: userData.email });
-    
+
     // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
       where: { email: userData.email },
@@ -56,12 +60,15 @@ export class AuthService {
 
   async login(email: string, password: string, dto: LoginUserDto) {
     console.log('Auth Service - Attempting login for:', email);
-    
+
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
-    console.log('Auth Service - Found user:', user ? { ...user, password: '[REDACTED]' } : null);
+    console.log(
+      'Auth Service - Found user:',
+      user ? { ...user, password: '[REDACTED]' } : null,
+    );
 
     if (!user) {
       console.log('Auth Service - User not found');
@@ -78,10 +85,13 @@ export class AuthService {
         role: user.role,
       };
       console.log('Auth Service - Generating token with payload:', payload);
-      
+
       const token = this.jwtService.generateToken(payload);
-      console.log('Auth Service - Token generated:', token.substring(0, 20) + '...');
-      
+      console.log(
+        'Auth Service - Token generated:',
+        token.substring(0, 20) + '...',
+      );
+
       return {
         access_token: token,
         user: {
