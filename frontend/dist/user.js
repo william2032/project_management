@@ -8,12 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-console.log('User script loaded'); // This should appear in console immediately
-// Test basic DOM access
-window.onload = () => {
-    console.log('Window loaded, document should be ready');
-    console.log('Nav element exists:', document.querySelector('nav') !== null);
-};
 // Initialize user dashboard
 function initializeUserDashboard() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -28,7 +22,6 @@ function initializeUserDashboard() {
         }
         // Verify session with backend
         try {
-            //   console.log('Verifying session with backend');
             const response = yield fetch('http://localhost:3000/users/me', {
                 method: 'GET',
                 headers: {
@@ -39,8 +32,6 @@ function initializeUserDashboard() {
             });
             console.log('Verification response status:', response.status);
             if (response.status === 401) {
-                // Token expired or invalid
-                // console.log('Session invalid - clearing storage');
                 localStorage.clear();
                 document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
                 window.location.href = 'login.html';
@@ -143,7 +134,7 @@ function initializeSidebarNavigation() {
         // Reload projects
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (user.id) {
-            loadUserProjects(user.id);
+            loadUserProjects(user.id).then(r => console.log('User loaded'));
         }
     });
 }
@@ -239,7 +230,7 @@ function loadUserProjects(userId) {
                 return;
             }
             // Verify the user data first
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const user = JSON.parse(localStorage.getItem('user') || '{ }');
             if (!(user === null || user === void 0 ? void 0 : user.id)) {
                 console.error('[DEBUG] No user data found');
                 throw new Error('User data not found');

@@ -1,4 +1,3 @@
-// Add debug logs at the start of the file
 console.log('Script loaded successfully');
 
 // Define User interface locally since Prisma client is not available in frontend
@@ -38,13 +37,12 @@ function handleLogout(e?: Event) {
   localStorage.removeItem('user');
   sessionStorage.clear();
   
-  // Redirect to login page
   window.location.href = 'login.html';
 }
 
 // Initialize logout button when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  const logoutButton = document.getElementById('logout');
+  const logoutButton = document.getElementById('logout') as HTMLButtonElement;
   if (logoutButton) {
     logoutButton.addEventListener('click', handleLogout);
     console.log('Logout button initialized');
