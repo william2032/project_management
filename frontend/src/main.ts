@@ -990,6 +990,9 @@ function initializeAdmin(): void {
       console.log('Assign project form not found');
     }
 
+    // Initialize search functionality
+    initializeSearch();
+
     // Load initial data
     console.log('Loading initial data...');
     loadProjects().catch(error => {
@@ -1021,34 +1024,62 @@ async function handleLogin(event: Event): Promise<void> {
   const password = (form.querySelector('#loginPassword') as HTMLInputElement).value;
 
   try {
+    console.log('Attempting login for:', email);
+    
     const response = await fetch('http://localhost:3000/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email, password }),
+      credentials: 'include' // Add this to handle cookies
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error('Login failed: ' + errorText);
+      // Handle specific error cases
+      if (response.status === 401) {
+        throw new Error('Invalid email or password. Please try again.');
+      } else if (response.status === 404) {
+        throw new Error('User not found. Please register first.');
+      } else {
+        throw new Error(data.message || 'Login failed. Please try again.');
+      }
     }
 
-    const data = await response.json();
-    
     // Store the token and user data
     localStorage.setItem('token', data.access_token);
     localStorage.setItem('user', JSON.stringify(data.user));
 
-    // Redirect based on user role
-    if (data.user?.role === 'admin') {
-      window.location.href = 'admin.html';
-    } else {
-      window.location.href = 'user.html';
-    }
+    // Show success message
+    const successMessage = document.createElement('div');
+    successMessage.className = 'success-message';
+    successMessage.textContent = 'Login successful! Redirecting...';
+    document.body.appendChild(successMessage);
+
+    // Redirect based on user role after a short delay
+    setTimeout(() => {
+      if (data.user?.role === 'admin') {
+        window.location.href = 'admin.html';
+      } else {
+        window.location.href = 'user.html';
+      }
+    }, 1000);
+
   } catch (error) {
     console.error('Login error:', error);
-    alert('Login failed. Please check your credentials.');
+    
+    // Show error message to user
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'error-message';
+    errorMessage.textContent = error instanceof Error ? error.message : 'Login failed. Please try again.';
+    document.body.appendChild(errorMessage);
+
+    // Remove error message after 3 seconds
+    setTimeout(() => {
+      errorMessage.remove();
+    }, 3000);
   }
 }
 
@@ -1234,15 +1265,6 @@ function initializeUserDashboard() {
   const userNameElement = document.querySelector('.right h4');
   if (userNameElement && user.name) {
     userNameElement.textContent = user.name;
-  }
-
-  // Initialize logout button - THIS IS THE CRUCIAL PART
-  const logoutButton = document.getElementById('logout');
-  if (logoutButton) {
-    logoutButton.addEventListener('click', handleLogout);
-    console.log('Logout button initialized'); // For debugging
-  } else {
-    console.error('Logout button not found'); // For debugging
   }
 
   // Load user-specific content
@@ -1439,5 +1461,79 @@ async function viewCompletedProjectDetails(id: number) {
   } catch (error) {
     console.error('Error viewing completed project:', error);
     alert('Failed to load project details. Please try again.');
+  }
+}
+
+// Add search functionality
+function initializeSearch() {
+  // User search
+  const userSearch = document.getElementById('userSearch') as HTMLInputElement;
+  if (userSearch) {
+    userSearch.addEventListener('input', (e) => {
+      const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
+      const userCards = document.querySelectorAll('.user-card');
+      
+      userCards.forEach(card => {
+        const userName = card.querySelector('.user-name')?.textContent?.toLowerCase() || '';
+        const userEmail = card.querySelector('.user-email')?.textContent?.toLowerCase() || '';
+        const userRole = card.querySelector('.user-role')?.textContent?.toLowerCase() || '';
+        
+        if (userName.includes(searchTerm) || userEmail.includes(searchTerm) || userRole.includes(searchTerm)) {
+          (card as HTMLElement).style.display = 'block';
+        } else {
+          (card as HTMLElement).style.display = 'none';
+        }
+      });
+    });
+  }
+
+  // Project search
+  const projectSearch = document.getElementById('projectSearch') as HTMLInputElement;
+  if (projectSearch) {
+    projectSearch.addEventListener('input', (e) => {
+      const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
+      const projectCards = document.querySelectorAll('.project-card:not(.completed)');
+      
+      projectCards.forEach(card => {
+        const projectTitle = card.querySelector('h3')?.textContent?.toLowerCase() || '';
+        const projectDescription = card.querySelector('.description')?.textContent?.toLowerCase() || '';
+        const projectStatus = card.querySelector('.status')?.textContent?.toLowerCase() || '';
+        const assignedTo = card.querySelector('.assigned-user')?.textContent?.toLowerCase() || '';
+        
+        if (projectTitle.includes(searchTerm) || 
+            projectDescription.includes(searchTerm) || 
+            projectStatus.includes(searchTerm) || 
+            assignedTo.includes(searchTerm)) {
+          (card as HTMLElement).style.display = 'block';
+        } else {
+          (card as HTMLElement).style.display = 'none';
+        }
+      });
+    });
+  }
+
+  // Completed project search
+  const completedProjectSearch = document.getElementById('completedProjectSearch') as HTMLInputElement;
+  if (completedProjectSearch) {
+    completedProjectSearch.addEventListener('input', (e) => {
+      const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
+      const completedProjectCards = document.querySelectorAll('.project-card.completed');
+      
+      completedProjectCards.forEach(card => {
+        const projectTitle = card.querySelector('h3')?.textContent?.toLowerCase() || '';
+        const projectDescription = card.querySelector('.description')?.textContent?.toLowerCase() || '';
+        const completedBy = card.querySelector('.project-details p:first-child')?.textContent?.toLowerCase() || '';
+        const completedDate = card.querySelector('.project-details p:nth-child(2)')?.textContent?.toLowerCase() || '';
+        
+        if (projectTitle.includes(searchTerm) || 
+            projectDescription.includes(searchTerm) || 
+            completedBy.includes(searchTerm) || 
+            completedDate.includes(searchTerm)) {
+          (card as HTMLElement).style.display = 'block';
+        } else {
+          (card as HTMLElement).style.display = 'none';
+        }
+      });
+    });
   }
 }
