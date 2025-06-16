@@ -1,6 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import ejs from 'ejs';
+import * as fs from 'fs';
 import * as nodemailer from 'nodemailer';
+import path from 'path';
 
 export interface EmailOptions {
   to: string;
@@ -16,6 +21,7 @@ export interface WelcomeEmailContext {
   email: string;
   project: string;
   supportEmail?: string;
+  loginUrl: string;
 }
 @Injectable()
 export class MailerService {
@@ -41,6 +47,10 @@ export class MailerService {
     try {
       let html = options.html;
 
+      if (options.template && options.context) {
+        html = await this.renderTemplate(options.template, options.context);
+      }
+
       const mailOptions = {
         from: this.configService.get<string>(
           'SMTP_FROM',
@@ -60,6 +70,61 @@ export class MailerService {
       this.logger.error(
         `Failed to send email to ${options.to} : ${error.messageId}`,
       );
+    }
+  }
+
+  async sendWelcome(to: string, context: WelcomeEmailContext): Promise<void> {
+    const emailOptions: EmailOptions = {
+      to,
+      subject: `Welcome to ${context.project} project management system`,
+      template: 'Welcome',
+      context: {
+        ...context,
+        loginUrl:
+          context.loginUrl ||
+          `${this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000/api/login')}`,
+        supportEmail:
+          context.supportEmail ||
+          `${this.configService.get<string>('SUPPORT_EMAIL', 'projectassignment@gmail.com')} `,
+        username: context.username || 'User',
+      },
+    };
+    await this.sendEmail(emailOptions);
+  }
+
+  private async renderTemplate(
+    templateName: string,
+    context: Record<string, any>,
+  ): Promise<string> {
+    try {
+      const templatesPath = path.join(
+        this.templatesPath,
+        `${templateName}.ejs`,
+      );
+
+      if (!fs.existsSync(templatesPath)) {
+        throw new Error(
+          `Template ${templateName} not found at ${templatesPath}`,
+        );
+      }
+
+      const templateOptions = {
+        filename: templatesPath,
+        cache: process.env.NODE_ENV === 'production',
+        compileDebug: process.env.NODE_ENV !== 'production',
+      };
+      const html = await ejs.renderFile(
+        templatesPath,
+        context,
+        templateOptions,
+      );
+
+      return html;
+    } catch (error) {
+      this.logger.error(
+        `Template rendering failed for ${templateName} : ${error.message}`,
+      );
+      throw error;
     }
   }
 }
