@@ -7,6 +7,13 @@ interface Project {
     assignedAt: string;
     assignedBy?: string;
 }
+console.log('User script loaded'); // This should appear in console immediately
+
+// Test basic DOM access
+window.onload = () => {
+    console.log('Window loaded, document should be ready');
+    console.log('Nav element exists:', document.querySelector('nav') !== null);
+};
 
 // Initialize user dashboard
 async function initializeUserDashboard() {
@@ -17,14 +24,14 @@ async function initializeUserDashboard() {
     const token = localStorage.getItem('token');
     
     if (!token || !localUser?.id) {
-      console.log('No token or user found - redirecting to login');
+    //   console.log('No token or user found - redirecting to login');
       window.location.href = 'login.html';
       return;
     }
   
     // Verify session with backend
     try {
-      console.log('Verifying session with backend');
+    //   console.log('Verifying session with backend');
       const response = await fetch('http://localhost:3000/users/me', {
         method: 'GET',
         headers: {
@@ -38,7 +45,7 @@ async function initializeUserDashboard() {
       
       if (response.status === 401) {
         // Token expired or invalid
-        console.log('Session invalid - clearing storage');
+        // console.log('Session invalid - clearing storage');
         localStorage.clear();
         document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         window.location.href = 'login.html';
@@ -50,7 +57,7 @@ async function initializeUserDashboard() {
       }
   
       const user = await response.json();
-      console.log('User verified:', user);
+    //   console.log('User verified:', user);
       
       // Update UI with user's information
       const userNameElement = document.querySelector('#usernameDisplay');
@@ -83,64 +90,125 @@ async function initializeUserDashboard() {
     }
 }
 
+// Show section function
+function showSection(sectionName: string) {
+    // Hide all sections first
+    document.querySelectorAll('.section').forEach(section => {
+        (section as HTMLElement).style.display = 'none';
+    });
+    
+    // Show the requested section
+    const targetSection = document.querySelector(`.${sectionName}-section`);
+    if (targetSection) {
+        (targetSection as HTMLElement).style.display = 'block';
+    }
+}
+
 // Initialize sidebar navigation
 function initializeSidebarNavigation() {
-    try {
-        console.log('[DEBUG] Initializing sidebar navigation');
-        const sidebarItems = document.querySelectorAll('.sidebar li');
-        console.log('[DEBUG] Found sidebar items:', sidebarItems.length);
+    console.log('[DEBUG] Initializing sidebar navigation');
+    
+    // Get sidebar elements
+    const sidebarList = document.querySelector('.sidebar ul');
+    const sidebarItems = document.querySelectorAll('.sidebar li');
+    const sections = document.querySelectorAll('.section');
 
-        // First, ensure all sections are hidden except current projects
-        document.querySelectorAll('.section').forEach(section => {
-            (section as HTMLElement).style.display = 'none';
-        });
-        const currentSection = document.querySelector('.current-projects-section');
-        if (currentSection) {
-            (currentSection as HTMLElement).style.display = 'block';
+    if (!sidebarList) {
+        console.error('[DEBUG] Sidebar list not found!');
+        return;
+    }
+
+    console.log('[DEBUG] Found sidebar items:', sidebarItems.length);
+    console.log('[DEBUG] Found sections:', sections.length);
+
+    // Set default section
+    sections.forEach(section => {
+        (section as HTMLElement).style.display = 'none';
+    });
+    
+    const defaultSection = document.querySelector('.current-projects-section');
+    if (defaultSection) {
+        (defaultSection as HTMLElement).style.display = 'block';
+    }
+
+    // Set default active state
+    sidebarItems.forEach(item => item.classList.remove('active'));
+    const defaultItem = document.querySelector('.sidebar li[data-section="current-projects"]');
+    if (defaultItem) {
+        defaultItem.classList.add('active');
+    }
+
+    // Add click handler to sidebar list
+    sidebarList.addEventListener('click', (e) => {
+        const target = (e.target as HTMLElement).closest('li');
+        if (!target) return;
+
+        console.log('[DEBUG] Sidebar item clicked:', target);
+        e.preventDefault();
+
+        const section = target.getAttribute('data-section');
+        if (!section) {
+            console.error('[DEBUG] No data-section attribute found');
+            return;
         }
 
-        sidebarItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('[DEBUG] Sidebar item clicked:', item);
-                
-                const sectionToShow = item.getAttribute('data-section');
-                console.log('[DEBUG] Section to show:', sectionToShow);
-                
-                if (!sectionToShow) {
-                    console.error('[DEBUG] No section specified for item');
-                    return;
-                }
+        // Update active state
+        sidebarItems.forEach(item => item.classList.remove('active'));
+        target.classList.add('active');
 
-                // Hide all sections first
-                document.querySelectorAll('.section').forEach(section => {
-                    (section as HTMLElement).style.display = 'none';
-                });
-                
-                // Show selected section
-                const targetSection = document.querySelector(`.${sectionToShow}-section`);
-                if (targetSection) {
-                    console.log('[DEBUG] Showing section:', sectionToShow);
-                    (targetSection as HTMLElement).style.display = 'block';
-                    
-                    // Update active state in sidebar
-                    sidebarItems.forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
-                    
-                    // Reload projects if needed
-                    const user = JSON.parse(localStorage.getItem('user') || '{}');
-                    if (user.id) {
-                        console.log('[DEBUG] Reloading projects for section:', sectionToShow);
-                        loadUserProjects(user.id);
-                    }
-                } else {
-                    console.error('[DEBUG] Target section not found:', sectionToShow);
-                }
-            });
+        // Show selected section
+        sections.forEach(section => {
+            (section as HTMLElement).style.display = 'none';
         });
-    } catch (error) {
-        console.error('[DEBUG] Error initializing sidebar:', error);
+        
+        const targetSection = document.querySelector(`.${section}-section`);
+        if (targetSection) {
+            (targetSection as HTMLElement).style.display = 'block';
+            console.log('[DEBUG] Showing section:', section);
+        }
+
+        // Reload projects
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.id) {
+            loadUserProjects(user.id);
+        }
+    });
+}
+
+// Initialize logout button
+function initializeLogoutButton() {
+    console.log('[DEBUG] Initializing logout button');
+    
+    const logoutButton = document.getElementById('logout');
+    if (!logoutButton) {
+        console.error('[DEBUG] Logout button not found!');
+        return;
     }
+
+    // Remove existing listeners by cloning
+    const newLogoutButton = logoutButton.cloneNode(true);
+    if (logoutButton.parentNode) {
+        logoutButton.parentNode.replaceChild(newLogoutButton, logoutButton);
+    }
+
+    // Add click handler
+    newLogoutButton.addEventListener('click', async (e) => {
+        console.log('[DEBUG] Logout button clicked');
+        e.preventDefault();
+        e.stopPropagation(); // Prevent event bubbling
+        await handleLogout();
+    });
+
+    // Add keyboard handler
+    newLogoutButton.addEventListener('keydown', async (e) => {
+        const keyEvent = e as KeyboardEvent;
+        if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+            console.log('[DEBUG] Logout keyboard trigger');
+            e.preventDefault();
+            e.stopPropagation(); // Prevent event bubbling
+            await handleLogout();
+        }
+    });
 }
 
 // Handle logout
@@ -349,7 +417,7 @@ function displayProjects(projects: Project[]) {
     const completedProjectsContainer = document.getElementById('completedProjectsContainer');
     
     if (!currentProjectsContainer || !completedProjectsContainer) {
-        console.error('Project containers not found');
+        // console.error('Project containers not found');
         return;
     }
 
@@ -475,7 +543,7 @@ function formatDate(dateString: string): string {
         };
         return new Date(dateString).toLocaleDateString(undefined, options);
     } catch (e) {
-        console.error('Error formatting date:', e);
+        // console.error('Error formatting date:', e);
         return dateString; // Return raw string if formatting fails
     }
 }
@@ -682,71 +750,41 @@ async function markProjectComplete(projectId: string) {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        console.log('[DEBUG] DOM loaded, initializing...');
+    console.log('[DEBUG] DOM fully loaded');
+    
+    // Initialize components
+    initializeUserDashboard();
+    initializeSidebarNavigation();
+    initializeLogoutButton();
+    
+    // Add click handler for project cards
+    document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        const projectCard = target.closest('.project-card');
         
-        // Initialize dashboard
-        initializeUserDashboard();
-        
-        // Initialize sidebar navigation
-        initializeSidebarNavigation();
-        
-        // Add logout event listener
-        const logoutButton = document.getElementById('logout');
-        console.log('[DEBUG] Logout button found:', !!logoutButton);
-        
-        if (logoutButton) {
-            logoutButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('[DEBUG] Logout button clicked');
-                handleLogout();
-            });
-        } else {
-            console.error('[DEBUG] Logout button not found');
+        if (projectCard) {
+            const projectId = projectCard.getAttribute('data-project-id');
+            if (projectId) {
+                console.log('[DEBUG] Project card clicked:', projectId);
+                viewProjectDetails(projectId);
+            }
         }
+    });
 
-        // Add event listeners for all buttons with data-project-id
-        document.addEventListener('click', (e) => {
-            try {
-                const target = e.target as HTMLElement;
-                const button = target.closest('[data-project-id]');
-                const projectId = button?.getAttribute('data-project-id');
-                
-                if (projectId) {
-                    console.log('[DEBUG] Project button clicked:', projectId);
-                    
-                    if (target.classList.contains('btn-complete') || target.closest('.btn-complete')) {
-                        console.log('[DEBUG] Marking project as complete:', projectId);
-                        markProjectComplete(projectId);
-                    } else if (target.classList.contains('btn-view') || target.closest('.btn-view')) {
-                        console.log('[DEBUG] Viewing project details:', projectId);
-                        viewProjectDetails(projectId);
-                    }
-                }
-            } catch (error) {
-                console.error('[DEBUG] Error handling project button click:', error);
-            }
+    // Add modal close handlers
+    const modal = document.getElementById('projectModal');
+    const closeButtons = modal?.querySelectorAll('.close-modal, .btn-close');
+    
+    closeButtons?.forEach(button => {
+        button.addEventListener('click', () => {
+            modal?.classList.remove('show');
         });
+    });
 
-        // Add fallback click handlers for project cards
-        document.addEventListener('click', (e) => {
-            try {
-                const target = e.target as HTMLElement;
-                const projectCard = target.closest('.project-card');
-                
-                if (projectCard) {
-                    const projectId = projectCard.getAttribute('data-project-id');
-                    if (projectId) {
-                        console.log('[DEBUG] Project card clicked:', projectId);
-                        viewProjectDetails(projectId);
-                    }
-                }
-            } catch (error) {
-                console.error('[DEBUG] Error handling project card click:', error);
-            }
-        });
-
-    } catch (error) {
-        console.error('[DEBUG] Error during initialization:', error);
-    }
+    // Close modal when clicking outside
+    modal?.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('show');
+        }
+    });
 });

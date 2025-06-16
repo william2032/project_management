@@ -8,6 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+console.log('User script loaded'); // This should appear in console immediately
+// Test basic DOM access
+window.onload = () => {
+    console.log('Window loaded, document should be ready');
+    console.log('Nav element exists:', document.querySelector('nav') !== null);
+};
 // Initialize user dashboard
 function initializeUserDashboard() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -16,13 +22,13 @@ function initializeUserDashboard() {
         const localUser = JSON.parse(localStorage.getItem('user') || '{}');
         const token = localStorage.getItem('token');
         if (!token || !(localUser === null || localUser === void 0 ? void 0 : localUser.id)) {
-            console.log('No token or user found - redirecting to login');
+            //   console.log('No token or user found - redirecting to login');
             window.location.href = 'login.html';
             return;
         }
         // Verify session with backend
         try {
-            console.log('Verifying session with backend');
+            //   console.log('Verifying session with backend');
             const response = yield fetch('http://localhost:3000/users/me', {
                 method: 'GET',
                 headers: {
@@ -34,7 +40,7 @@ function initializeUserDashboard() {
             console.log('Verification response status:', response.status);
             if (response.status === 401) {
                 // Token expired or invalid
-                console.log('Session invalid - clearing storage');
+                // console.log('Session invalid - clearing storage');
                 localStorage.clear();
                 document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
                 window.location.href = 'login.html';
@@ -44,7 +50,7 @@ function initializeUserDashboard() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const user = yield response.json();
-            console.log('User verified:', user);
+            //   console.log('User verified:', user);
             // Update UI with user's information
             const userNameElement = document.querySelector('#usernameDisplay');
             const userRoleElement = document.querySelector('#userRole');
@@ -71,58 +77,106 @@ function initializeUserDashboard() {
         }
     });
 }
+// Show section function
+function showSection(sectionName) {
+    // Hide all sections first
+    document.querySelectorAll('.section').forEach(section => {
+        section.style.display = 'none';
+    });
+    // Show the requested section
+    const targetSection = document.querySelector(`.${sectionName}-section`);
+    if (targetSection) {
+        targetSection.style.display = 'block';
+    }
+}
 // Initialize sidebar navigation
 function initializeSidebarNavigation() {
-    try {
-        console.log('[DEBUG] Initializing sidebar navigation');
-        const sidebarItems = document.querySelectorAll('.sidebar li');
-        console.log('[DEBUG] Found sidebar items:', sidebarItems.length);
-        // First, ensure all sections are hidden except current projects
-        document.querySelectorAll('.section').forEach(section => {
+    console.log('[DEBUG] Initializing sidebar navigation');
+    // Get sidebar elements
+    const sidebarList = document.querySelector('.sidebar ul');
+    const sidebarItems = document.querySelectorAll('.sidebar li');
+    const sections = document.querySelectorAll('.section');
+    if (!sidebarList) {
+        console.error('[DEBUG] Sidebar list not found!');
+        return;
+    }
+    console.log('[DEBUG] Found sidebar items:', sidebarItems.length);
+    console.log('[DEBUG] Found sections:', sections.length);
+    // Set default section
+    sections.forEach(section => {
+        section.style.display = 'none';
+    });
+    const defaultSection = document.querySelector('.current-projects-section');
+    if (defaultSection) {
+        defaultSection.style.display = 'block';
+    }
+    // Set default active state
+    sidebarItems.forEach(item => item.classList.remove('active'));
+    const defaultItem = document.querySelector('.sidebar li[data-section="current-projects"]');
+    if (defaultItem) {
+        defaultItem.classList.add('active');
+    }
+    // Add click handler to sidebar list
+    sidebarList.addEventListener('click', (e) => {
+        const target = e.target.closest('li');
+        if (!target)
+            return;
+        console.log('[DEBUG] Sidebar item clicked:', target);
+        e.preventDefault();
+        const section = target.getAttribute('data-section');
+        if (!section) {
+            console.error('[DEBUG] No data-section attribute found');
+            return;
+        }
+        // Update active state
+        sidebarItems.forEach(item => item.classList.remove('active'));
+        target.classList.add('active');
+        // Show selected section
+        sections.forEach(section => {
             section.style.display = 'none';
         });
-        const currentSection = document.querySelector('.current-projects-section');
-        if (currentSection) {
-            currentSection.style.display = 'block';
+        const targetSection = document.querySelector(`.${section}-section`);
+        if (targetSection) {
+            targetSection.style.display = 'block';
+            console.log('[DEBUG] Showing section:', section);
         }
-        sidebarItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('[DEBUG] Sidebar item clicked:', item);
-                const sectionToShow = item.getAttribute('data-section');
-                console.log('[DEBUG] Section to show:', sectionToShow);
-                if (!sectionToShow) {
-                    console.error('[DEBUG] No section specified for item');
-                    return;
-                }
-                // Hide all sections first
-                document.querySelectorAll('.section').forEach(section => {
-                    section.style.display = 'none';
-                });
-                // Show selected section
-                const targetSection = document.querySelector(`.${sectionToShow}-section`);
-                if (targetSection) {
-                    console.log('[DEBUG] Showing section:', sectionToShow);
-                    targetSection.style.display = 'block';
-                    // Update active state in sidebar
-                    sidebarItems.forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
-                    // Reload projects if needed
-                    const user = JSON.parse(localStorage.getItem('user') || '{}');
-                    if (user.id) {
-                        console.log('[DEBUG] Reloading projects for section:', sectionToShow);
-                        loadUserProjects(user.id);
-                    }
-                }
-                else {
-                    console.error('[DEBUG] Target section not found:', sectionToShow);
-                }
-            });
-        });
+        // Reload projects
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.id) {
+            loadUserProjects(user.id);
+        }
+    });
+}
+// Initialize logout button
+function initializeLogoutButton() {
+    console.log('[DEBUG] Initializing logout button');
+    const logoutButton = document.getElementById('logout');
+    if (!logoutButton) {
+        console.error('[DEBUG] Logout button not found!');
+        return;
     }
-    catch (error) {
-        console.error('[DEBUG] Error initializing sidebar:', error);
+    // Remove existing listeners by cloning
+    const newLogoutButton = logoutButton.cloneNode(true);
+    if (logoutButton.parentNode) {
+        logoutButton.parentNode.replaceChild(newLogoutButton, logoutButton);
     }
+    // Add click handler
+    newLogoutButton.addEventListener('click', (e) => __awaiter(this, void 0, void 0, function* () {
+        console.log('[DEBUG] Logout button clicked');
+        e.preventDefault();
+        e.stopPropagation(); // Prevent event bubbling
+        yield handleLogout();
+    }));
+    // Add keyboard handler
+    newLogoutButton.addEventListener('keydown', (e) => __awaiter(this, void 0, void 0, function* () {
+        const keyEvent = e;
+        if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+            console.log('[DEBUG] Logout keyboard trigger');
+            e.preventDefault();
+            e.stopPropagation(); // Prevent event bubbling
+            yield handleLogout();
+        }
+    }));
 }
 // Handle logout
 function handleLogout() {
@@ -313,7 +367,7 @@ function displayProjects(projects) {
     const currentProjectsContainer = document.getElementById('currentProjectsContainer');
     const completedProjectsContainer = document.getElementById('completedProjectsContainer');
     if (!currentProjectsContainer || !completedProjectsContainer) {
-        console.error('Project containers not found');
+        // console.error('Project containers not found');
         return;
     }
     // Clear existing projects
@@ -428,7 +482,7 @@ function formatDate(dateString) {
         return new Date(dateString).toLocaleDateString(undefined, options);
     }
     catch (e) {
-        console.error('Error formatting date:', e);
+        // console.error('Error formatting date:', e);
         return dateString; // Return raw string if formatting fails
     }
 }
@@ -623,67 +677,36 @@ function markProjectComplete(projectId) {
 }
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        console.log('[DEBUG] DOM loaded, initializing...');
-        // Initialize dashboard
-        initializeUserDashboard();
-        // Initialize sidebar navigation
-        initializeSidebarNavigation();
-        // Add logout event listener
-        const logoutButton = document.getElementById('logout');
-        console.log('[DEBUG] Logout button found:', !!logoutButton);
-        if (logoutButton) {
-            logoutButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('[DEBUG] Logout button clicked');
-                handleLogout();
-            });
+    console.log('[DEBUG] DOM fully loaded');
+    // Initialize components
+    initializeUserDashboard();
+    initializeSidebarNavigation();
+    initializeLogoutButton();
+    // Add click handler for project cards
+    document.addEventListener('click', (e) => {
+        const target = e.target;
+        const projectCard = target.closest('.project-card');
+        if (projectCard) {
+            const projectId = projectCard.getAttribute('data-project-id');
+            if (projectId) {
+                console.log('[DEBUG] Project card clicked:', projectId);
+                viewProjectDetails(projectId);
+            }
         }
-        else {
-            console.error('[DEBUG] Logout button not found');
+    });
+    // Add modal close handlers
+    const modal = document.getElementById('projectModal');
+    const closeButtons = modal === null || modal === void 0 ? void 0 : modal.querySelectorAll('.close-modal, .btn-close');
+    closeButtons === null || closeButtons === void 0 ? void 0 : closeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            modal === null || modal === void 0 ? void 0 : modal.classList.remove('show');
+        });
+    });
+    // Close modal when clicking outside
+    modal === null || modal === void 0 ? void 0 : modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('show');
         }
-        // Add event listeners for all buttons with data-project-id
-        document.addEventListener('click', (e) => {
-            try {
-                const target = e.target;
-                const button = target.closest('[data-project-id]');
-                const projectId = button === null || button === void 0 ? void 0 : button.getAttribute('data-project-id');
-                if (projectId) {
-                    console.log('[DEBUG] Project button clicked:', projectId);
-                    if (target.classList.contains('btn-complete') || target.closest('.btn-complete')) {
-                        console.log('[DEBUG] Marking project as complete:', projectId);
-                        markProjectComplete(projectId);
-                    }
-                    else if (target.classList.contains('btn-view') || target.closest('.btn-view')) {
-                        console.log('[DEBUG] Viewing project details:', projectId);
-                        viewProjectDetails(projectId);
-                    }
-                }
-            }
-            catch (error) {
-                console.error('[DEBUG] Error handling project button click:', error);
-            }
-        });
-        // Add fallback click handlers for project cards
-        document.addEventListener('click', (e) => {
-            try {
-                const target = e.target;
-                const projectCard = target.closest('.project-card');
-                if (projectCard) {
-                    const projectId = projectCard.getAttribute('data-project-id');
-                    if (projectId) {
-                        console.log('[DEBUG] Project card clicked:', projectId);
-                        viewProjectDetails(projectId);
-                    }
-                }
-            }
-            catch (error) {
-                console.error('[DEBUG] Error handling project card click:', error);
-            }
-        });
-    }
-    catch (error) {
-        console.error('[DEBUG] Error during initialization:', error);
-    }
+    });
 });
 //# sourceMappingURL=user.js.map
