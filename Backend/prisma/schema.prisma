@@ -14,6 +14,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum EmailStatus {
+  SENT
+  NOT_SENT
+  PENDING
+  PROCESSING
+  FAILED
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   name         String
@@ -27,15 +35,17 @@ model User {
 }
 
 model Project {
-  id          Int       @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   title       String
+  name        String? // Add this if you're using project.name in your code
   description String
-  status      Status    @default(pending)
+  status      Status      @default(pending)
   endDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  assignedTo  User?     @relation(fields: [userId], references: [id])
-  userId      Int?      @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  assignedTo  User?       @relation(fields: [userId], references: [id])
+  userId      Int?        @unique
+  emailStatus EmailStatus @default(NOT_SENT) // ➕ Add this line
 }
 
 enum Role {
@@ -47,4 +57,19 @@ enum Status {
   pending
   in_progress
   completed
+}
+
+model EmailQueue {
+  id          String      @id @default(uuid())
+  to          String
+  subject     String
+  template    String
+  context     String      @db.Text
+  status      EmailStatus @default(PENDING)
+  error       String?     @db.Text
+  createdAt   DateTime    @default(now()) @map("created_at")
+  processedAt DateTime?   @map("processed_at")
+  retries     Int         @default(0)
+
+  @@map("email_queue")
 }

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Project Completed</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7f9fa;
+            color: #222;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            background: #fff;
+            max-width: 480px;
+            margin: 32px auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            padding: 32px 28px;
+        }
+        h2 {
+            color: #2e7d32;
+            margin-top: 0;
+            font-size: 1.7em;
+            letter-spacing: 1px;
+        }
+        p {
+            font-size: 1.08em;
+            margin: 18px 0 0 0;
+            line-height: 1.6;
+        }
+    </style>
+    <div class="email-container">
+        <h2>Project Completed</h2>
+        <p>Project: <%= projectName %></p>
+        <p>Has been marked as completed by: <%= userName %></p>
+    </div>
+    </body>
+</html>

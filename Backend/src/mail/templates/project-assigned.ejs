@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Project Assigned</title>
+</head>
+<body>
+<style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f7f9fb;
+        color: #222;
+        margin: 0;
+        padding: 0;
+    }
+    .email-container {
+        background: #fff;
+        max-width: 480px;
+        margin: 40px auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+        padding: 32px 28px;
+    }
+    h2 {
+        color: #2563eb;
+        margin-top: 0;
+        margin-bottom: 18px;
+        font-size: 1.7em;
+        letter-spacing: 0.5px;
+    }
+    p {
+        font-size: 1.08em;
+        line-height: 1.7;
+        margin: 12px 0;
+    }
+    .btn {
+        display: inline-block;
+        margin-top: 22px;
+        padding: 12px 28px;
+        background: #2563eb;
+        color: #fff !important;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1em;
+        box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+        transition: background 0.2s;
+    }
+    .btn:hover {
+        background: #1742a0;
+    }
+</style>
+<div class="email-container">
+    <h2>Project Assigned</h2>
+    <p>Hello <%= userName %>,</p>
+    <p>You have been assigned to the project: <%= projectName %></p>
+    <p>Please log in to view the project details.</p>
+    <a href="#" class="btn">Login</a>
+</div>
+
+</body>
+</html>

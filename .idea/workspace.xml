@@ -41,8 +41,6 @@
       <change beforePath="$PROJECT_DIR$/Backend/src/auth/roles.decorator.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/roles.decorator.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/auth/roles.guard.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/roles.guard.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/auth/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/auth/types.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/src/mailer/mailer.module.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/src/mailer/mailer.service.ts" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/main.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/prisma/prisma.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/prisma/prisma.module.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/prisma/prisma.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/prisma/prisma.service.spec.ts" afterDir="false" />
@@ -221,6 +219,13 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="TypeScript File" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -245,26 +250,27 @@
     <option name="showLibraryContents" value="true" />
     <option name="sortKey" value="BY_TIME_DESCENDING" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;HTTP Request.users | 1.1 Create a regular user.executor&quot;: &quot;Run&quot;,
-    &quot;HTTP Request.users | 1.2 Create an admin user.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;C:\\Users\\User\\Desktop\\Teach2GiveAttachment\\Week6\\Group-project\\project_management\\Backend\\node_modules\\prettier&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\User\\Desktop\\Teach2GiveAttachment\\Week6\\Group-project\\project_management\\Backend\\node_modules\\typescript\\lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "HTTP Request.users | 1.1 Create a regular user.executor": "Run",
+    "HTTP Request.users | 1.2 Create an admin user.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "email",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "C:\\Users\\User\\Desktop\\Teach2GiveAttachment\\Week6\\Group-project\\project_management\\Backend\\node_modules\\prettier",
+    "ts.external.directory.path": "C:\\Users\\User\\Desktop\\Teach2GiveAttachment\\Week6\\Group-project\\project_management\\Backend\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\User\Desktop\Teach2GiveAttachment\Week6\Group-project\project_management\Backend\src\email" />
       <recent name="C:\Users\User\Desktop\Teach2GiveAttachment\Week6\Group-project\project_management\Backend" />
     </key>
   </component>
