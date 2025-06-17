@@ -9,7 +9,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CustomJwtService } from './jwt.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthController } from './auth.controller';
-import { MailerModule } from 'src/mailer/mailer.module';
 
 @Module({
   imports: [
@@ -26,7 +25,7 @@ import { MailerModule } from 'src/mailer/mailer.module';
       }),
       inject: [ConfigService],
     }),
-    MailerModule,
+
   ],
   controllers: [AuthController],
   providers: [AuthService, CustomJwtService, PrismaService, JwtStrategy],
