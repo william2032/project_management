@@ -49,6 +49,9 @@ export class ProjectsService {
             },
           },
         },
+        orderBy: {
+          createdAt: 'desc'
+        }
       });
     } catch (error) {
       console.error('Error fetching projects:', error);

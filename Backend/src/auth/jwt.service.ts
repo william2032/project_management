@@ -17,15 +17,22 @@ export class CustomJwtService {
       secret: this.configService.get<string>('JWT_SECRET') || 'your-secret-key',
       expiresIn: '24h',
     });
-    console.log('JWT Service - Token generated:', token.substring(0, 20) + '...');
+    console.log(
+      'JWT Service - Token generated:',
+      token.substring(0, 20) + '...',
+    );
     return token;
   }
 
   verifyToken(token: string): JwtPayload {
-    console.log('JWT Service - Verifying token:', token.substring(0, 20) + '...');
+    console.log(
+      'JWT Service - Verifying token:',
+      token.substring(0, 20) + '...',
+    );
     try {
       const payload = this.jwtService.verify<JwtPayload>(token, {
-        secret: this.configService.get<string>('JWT_SECRET') || 'your-secret-key',
+        secret:
+          this.configService.get<string>('JWT_SECRET') || 'your-secret-key',
       });
       console.log('JWT Service - Token verified successfully:', payload);
       return payload;
@@ -36,7 +43,10 @@ export class CustomJwtService {
   }
 
   decodeToken(token: string): JwtPayload | null {
-    console.log('JWT Service - Decoding token:', token.substring(0, 20) + '...');
+    console.log(
+      'JWT Service - Decoding token:',
+      token.substring(0, 20) + '...',
+    );
     try {
       const payload = this.jwtService.decode(token);
       console.log('JWT Service - Token decoded successfully:', payload);
@@ -56,7 +66,10 @@ export class CustomJwtService {
       );
     }
     const token = authHeader.substring(7);
-    console.log('JWT Service - Token extracted:', token.substring(0, 20) + '...');
+    console.log(
+      'JWT Service - Token extracted:',
+      token.substring(0, 20) + '...',
+    );
     return token;
   }
 }

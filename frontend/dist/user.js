@@ -415,6 +415,7 @@ function createProjectCard(project, isCompleted = false) {
     const statusText = isCompleted ? 'Completed' : 'In Progress';
     const assignedDate = formatDate(project.assignedAt);
     const dueDate = project.dueDate ? formatDate(project.dueDate) : null;
+    const createdDate = project.createdAt ? formatDate(project.createdAt) : null;
     card.innerHTML = `
         <h3>${project.title}</h3>
         <span class="status ${statusClass}">${statusText}</span>
@@ -423,6 +424,11 @@ function createProjectCard(project, isCompleted = false) {
             <i class="fa-solid fa-user-tie"></i> 
             Assigned by: ${project.assignedBy || 'Manager'} on ${assignedDate}
         </p>
+        ${createdDate ? `
+        <p class="due-date">
+            <i class="fa-solid fa-calendar-plus"></i> 
+            Created: ${createdDate}
+        </p>` : ''}
         ${dueDate ? `
         <p class="due-date">
             <i class="fa-regular fa-calendar"></i> 
@@ -488,9 +494,14 @@ function viewProjectDetails(projectId) {
             }
             // Show loading state in modal
             const modal = document.getElementById('projectModal');
-            const modalBody = modal === null || modal === void 0 ? void 0 : modal.querySelector('.modal-body');
-            if (modal && modalBody) {
-                modal.classList.add('show');
+            if (!modal) {
+                throw new Error('Modal element not found');
+            }
+            // Show the modal first
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+            const modalBody = modal.querySelector('.modal-body');
+            if (modalBody) {
                 modalBody.innerHTML = `
                 <div class="loading">
                     <i class="fa-solid fa-spinner fa-spin"></i>
@@ -498,82 +509,108 @@ function viewProjectDetails(projectId) {
                 </div>
             `;
             }
-            // First try to get project from the projects list
+            console.log('Fetching project details for ID:', projectId);
+            // Get user data from localStorage
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            // First try to get the project from the current view
             const projectCard = (_a = document.querySelector(`[data-project-id="${projectId}"]`)) === null || _a === void 0 ? void 0 : _a.closest('.project-card');
-            let project;
+            let projectData = null;
             if (projectCard) {
-                // Extract project data from the card
-                project = {
+                // Extract data from the card
+                const title = ((_b = projectCard.querySelector('h3')) === null || _b === void 0 ? void 0 : _b.textContent) || '';
+                const description = ((_c = projectCard.querySelector('.description')) === null || _c === void 0 ? void 0 : _c.textContent) || '';
+                const status = ((_d = projectCard.querySelector('.status')) === null || _d === void 0 ? void 0 : _d.classList.contains('status-completed')) ? 'completed' : 'in_progress';
+                const assignedBy = ((_g = (_f = (_e = projectCard.querySelector('.due-date')) === null || _e === void 0 ? void 0 : _e.textContent) === null || _f === void 0 ? void 0 : _f.split('Assigned by: ')[1]) === null || _g === void 0 ? void 0 : _g.split(' on ')[0]) || 'Manager';
+                const assignedAt = new Date().toISOString(); // Use current date as fallback
+                const dueDate = (_j = (_h = projectCard.querySelector('.due-date:nth-child(2)')) === null || _h === void 0 ? void 0 : _h.textContent) === null || _j === void 0 ? void 0 : _j.split('Due: ')[1];
+                projectData = {
                     id: projectId,
-                    title: ((_b = projectCard.querySelector('h3')) === null || _b === void 0 ? void 0 : _b.textContent) || '',
-                    description: ((_c = projectCard.querySelector('.description')) === null || _c === void 0 ? void 0 : _c.textContent) || '',
-                    status: ((_d = projectCard.querySelector('.status')) === null || _d === void 0 ? void 0 : _d.classList.contains('status-completed')) ? 'completed' : 'in_progress',
-                    assignedBy: ((_g = (_f = (_e = projectCard.querySelector('.due-date')) === null || _e === void 0 ? void 0 : _e.textContent) === null || _f === void 0 ? void 0 : _f.split('Assigned by: ')[1]) === null || _g === void 0 ? void 0 : _g.split(' on ')[0]) || 'Manager',
-                    assignedAt: new Date().toISOString(), // Use current date as fallback
-                    dueDate: ((_j = (_h = projectCard.querySelector('.due-date:nth-child(2)')) === null || _h === void 0 ? void 0 : _h.textContent) === null || _j === void 0 ? void 0 : _j.split('Due: ')[1]) || undefined
+                    title,
+                    description,
+                    status,
+                    assignedBy,
+                    assignedAt,
+                    dueDate
                 };
             }
-            else {
-                // If not found in DOM, try to fetch from API
-                const response = yield fetch(`http://localhost:3000/projects/${projectId}`, {
+            // If we don't have the data from the card, fetch from API
+            if (!projectData) {
+                const response = yield fetch(`http://localhost:3000/users/${user.id}/projects/${projectId}`, {
+                    method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    credentials: 'include'
                 });
+                console.log('API Response status:', response.status);
                 if (!response.ok) {
-                    throw new Error('Failed to fetch project details');
+                    const errorData = yield response.json().catch(() => ({}));
+                    console.error('API Error:', errorData);
+                    if (response.status === 403) {
+                        throw new Error('You do not have permission to view this project');
+                    }
+                    else if (response.status === 404) {
+                        throw new Error('Project not found');
+                    }
+                    else {
+                        throw new Error(errorData.message || `Failed to fetch project details (Status: ${response.status})`);
+                    }
                 }
-                project = yield response.json();
+                projectData = yield response.json();
             }
+            console.log('Project data to display:', projectData);
             // Update modal content
-            if (modal && modalBody) {
+            if (modalBody) {
                 modalBody.innerHTML = `
-                <div class="project-details">
-                    <h2 id="modalProjectTitle">${project.title}</h2>
-                    <span id="modalProjectStatus" class="status ${project.status === 'completed' ? 'status-completed' : 'status-in-progress'}">
-                        ${project.status === 'completed' ? 'Completed' : 'In Progress'}
-                    </span>
-                    <p id="modalProjectDescription" class="description">${project.description}</p>
-                    <div class="timeline-info">
-                        <p><i class="fa-solid fa-user-tie"></i> Assigned by: <span id="modalProjectAssignedBy">${project.assignedBy || 'Manager'}</span></p>
-                        <p><i class="fa-regular fa-calendar"></i> Assigned on: <span id="modalProjectAssignedDate">${formatDate(project.assignedAt)}</span></p>
-                        ${project.dueDate ? `
-                            <p><i class="fa-regular fa-calendar"></i> Due date: <span id="modalProjectDueDate">${formatDate(project.dueDate)}</span></p>
-                        ` : ''}
+                <div class="project-info">
+                    <div class="info-section">
+                        <h3>Description</h3>
+                        <p id="modalProjectDescription">${projectData.description || 'No description available'}</p>
                     </div>
-                    ${project.status !== 'completed' ? `
-                        <button id="modalCompleteBtn" class="btn btn-complete">
-                            <i class="fa-solid fa-check"></i> Mark as Complete
-                        </button>
-                    ` : ''}
+                    <div class="info-section">
+                        <h3>Status</h3>
+                        <span id="modalProjectStatus" class="status ${projectData.status === 'completed' ? 'status-completed' : 'status-in-progress'}">
+                            ${projectData.status === 'completed' ? 'Completed' : 'In Progress'}
+                        </span>
+                    </div>
+                    <div class="info-section">
+                        <h3>Timeline</h3>
+                        <div class="timeline-info">
+                            <p><i class="fa-solid fa-user-tie"></i> Assigned by: <span id="modalProjectAssignedBy">${projectData.assignedBy || 'Manager'}</span></p>
+                            <p><i class="fa-regular fa-calendar"></i> Assigned on: <span id="modalProjectAssignedDate">${formatDate(projectData.assignedAt)}</span></p>
+                            ${projectData.createdAt ? `
+                                <p><i class="fa-solid fa-calendar-plus"></i> Created on: <span id="modalProjectCreatedDate">${formatDate(projectData.createdAt)}</span></p>
+                            ` : ''}
+                            ${projectData.dueDate ? `
+                                <p><i class="fa-regular fa-clock"></i> Due date: <span id="modalProjectDueDate">${formatDate(projectData.dueDate)}</span></p>
+                            ` : ''}
+                        </div>
+                    </div>
                 </div>
             `;
-                // Add event listener for complete button
+            }
+            // Update modal title
+            const modalTitle = modal.querySelector('#modalProjectTitle');
+            if (modalTitle) {
+                modalTitle.textContent = projectData.title || 'Project Details';
+            }
+            // Add complete button if project is not completed
+            const modalFooter = modal.querySelector('.modal-footer');
+            if (modalFooter && projectData.status !== 'completed') {
                 const completeBtn = document.getElementById('modalCompleteBtn');
                 if (completeBtn) {
+                    completeBtn.style.display = 'block';
                     completeBtn.onclick = () => {
                         markProjectComplete(projectId);
                         modal.classList.remove('show');
+                        modal.style.display = 'none';
                     };
                 }
             }
-            // Add event listeners for modal close buttons
-            const closeButtons = modal === null || modal === void 0 ? void 0 : modal.querySelectorAll('.close-modal, .btn-close');
-            closeButtons === null || closeButtons === void 0 ? void 0 : closeButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    modal === null || modal === void 0 ? void 0 : modal.classList.remove('show');
-                });
-            });
-            // Close modal when clicking outside
-            modal === null || modal === void 0 ? void 0 : modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('show');
-                }
-            });
         }
         catch (error) {
-            console.error('Error fetching project details:', error);
+            console.error('Error in viewProjectDetails:', error);
             const modal = document.getElementById('projectModal');
             const modalBody = modal === null || modal === void 0 ? void 0 : modal.querySelector('.modal-body');
             if (modal && modalBody) {
@@ -581,7 +618,7 @@ function viewProjectDetails(projectId) {
                 <div class="error-message">
                     <i class="fa-solid fa-exclamation-triangle"></i>
                     <p>Error: ${error instanceof Error ? error.message : 'Failed to load project details'}</p>
-                    <button class="btn btn-close close-modal">Close</button>
+                    <button class="btn btn-close" onclick="this.closest('.modal').style.display='none'">Close</button>
                 </div>
             `;
             }
@@ -673,30 +710,34 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeUserDashboard();
     initializeSidebarNavigation();
     initializeLogoutButton();
+    // Add modal close handlers
+    const modal = document.getElementById('projectModal');
+    if (modal) {
+        // Close button handlers
+        const closeButtons = modal.querySelectorAll('.close-modal, .btn-close');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+            });
+        });
+        // Close when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+            }
+        });
+    }
     // Add click handler for project cards
     document.addEventListener('click', (e) => {
         const target = e.target;
-        const projectCard = target.closest('.project-card');
-        if (projectCard) {
-            const projectId = projectCard.getAttribute('data-project-id');
+        const viewButton = target.closest('.btn-view');
+        if (viewButton) {
+            const projectId = viewButton.getAttribute('data-project-id');
             if (projectId) {
-                console.log('[DEBUG] Project card clicked:', projectId);
                 viewProjectDetails(projectId);
             }
-        }
-    });
-    // Add modal close handlers
-    const modal = document.getElementById('projectModal');
-    const closeButtons = modal === null || modal === void 0 ? void 0 : modal.querySelectorAll('.close-modal, .btn-close');
-    closeButtons === null || closeButtons === void 0 ? void 0 : closeButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            modal === null || modal === void 0 ? void 0 : modal.classList.remove('show');
-        });
-    });
-    // Close modal when clicking outside
-    modal === null || modal === void 0 ? void 0 : modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.remove('show');
         }
     });
 });

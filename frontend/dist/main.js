@@ -380,6 +380,11 @@ function displayProjects(projects) {
           <strong>Assigned to:</strong> 
           <span class="assigned-user">${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</span>
         </div>
+        <div class="timeline-info">
+          <p><i class="fa-solid fa-calendar-plus"></i> Created: ${formatDate(project.createdAt || project.assignedAt)}</p>
+          ${project.assignedAt ? `<p><i class="fa-regular fa-calendar"></i> Assigned: ${formatDate(project.assignedAt)}</p>` : ''}
+          ${project.dueDate ? `<p><i class="fa-regular fa-clock"></i> Due: ${formatDate(project.dueDate)}</p>` : ''}
+        </div>
       </div>
       <hr />
       <div class="btns">
@@ -621,7 +626,7 @@ function editProject(id) {
             <label for="editStatus">Status</label>
             <select id="editStatus" name="status">
               <option value="in_progress" ${project.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-              <option value="completed" ${project.status === 'completed' ? 'selected' : ''}>Completed</option>
+              
             </select>
           </div>
           <div class="form-actions">
@@ -821,12 +826,14 @@ function loadUsers() {
             const userSelect = document.getElementById('userSelect');
             if (!userSelect)
                 return;
+            // Filter out admin users - only show regular users
+            const regularUsers = users.filter(user => user.role !== 'admin');
             userSelect.innerHTML = `
       <option value="">Select a user...</option>
-      ${users
+      ${regularUsers
                 .map((user) => `
-          <option value="${user.id}">${user.name} (${user.email})</option>
-        `)
+        <option value="${user.id}">${user.name} (${user.email})</option>
+      `)
                 .join('')}
     `;
         }
@@ -944,7 +951,7 @@ function handleAssignProjectForm(event) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         event.preventDefault();
-        console.log('=== ASSIGN PROJECT FORM SUBMIT ===');
+        // console.log('=== ASSIGN PROJECT FORM SUBMIT ===');
         const projectSelect = document.getElementById('projectSelect');
         const userSelect = document.getElementById('userSelect');
         if (!projectSelect || !userSelect) {
@@ -953,8 +960,8 @@ function handleAssignProjectForm(event) {
         }
         const projectId = parseInt(projectSelect.value);
         const userId = parseInt(userSelect.value);
-        console.log('1. Selected Project ID:', projectId);
-        console.log('2. Selected User ID:', userId);
+        // console.log('1. Selected Project ID:', projectId);
+        // console.log('2. Selected User ID:', userId);
         if (!projectId || !userId) {
             alert('Please select both a project and a user');
             return;

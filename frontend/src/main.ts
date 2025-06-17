@@ -23,6 +23,8 @@ interface Project {
     name: string;
     email: string;
   };
+  createdAt?: string;
+  dueDate?: string;
 }
 
 // Global logout function
@@ -447,6 +449,11 @@ function displayProjects(projects: Project[]) {
           <strong>Assigned to:</strong> 
           <span class="assigned-user">${project.assignedTo ? project.assignedTo.name : 'Not assigned'}</span>
         </div>
+        <div class="timeline-info">
+          <p><i class="fa-solid fa-calendar-plus"></i> Created: ${formatDate(project.createdAt || project.assignedAt)}</p>
+          ${project.assignedAt ? `<p><i class="fa-regular fa-calendar"></i> Assigned: ${formatDate(project.assignedAt)}</p>` : ''}
+          ${project.dueDate ? `<p><i class="fa-regular fa-clock"></i> Due: ${formatDate(project.dueDate)}</p>` : ''}
+        </div>
       </div>
       <hr />
       <div class="btns">
@@ -732,7 +739,7 @@ async function editProject(id: number) {
             <label for="editStatus">Status</label>
             <select id="editStatus" name="status">
               <option value="in_progress" ${project.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-              <option value="completed" ${project.status === 'completed' ? 'selected' : ''}>Completed</option>
+              
             </select>
           </div>
           <div class="form-actions">
@@ -951,15 +958,18 @@ async function loadUsers(): Promise<void> {
     const userSelect = document.getElementById('userSelect') as HTMLSelectElement;
     if (!userSelect) return;
 
+    // Filter out admin users - only show regular users
+    const regularUsers = users.filter(user => user.role !== 'admin');
+    
     userSelect.innerHTML = `
       <option value="">Select a user...</option>
-      ${users
-        .map(
-          (user) => `
-          <option value="${user.id}">${user.name} (${user.email})</option>
-        `
-        )
-        .join('')}
+      ${regularUsers
+      .map(
+        (user) => `
+        <option value="${user.id}">${user.name} (${user.email})</option>
+      `
+      )
+      .join('')}
     `;
   } catch (error) {
     console.error('Error loading users:', error);
@@ -1084,7 +1094,7 @@ async function handleLogin(event: Event): Promise<void> {
 // Update handleAssignProjectForm to refresh the select after assignment
 async function handleAssignProjectForm(event: Event) {
   event.preventDefault();
-  console.log('=== ASSIGN PROJECT FORM SUBMIT ===');
+  // console.log('=== ASSIGN PROJECT FORM SUBMIT ===');
   
   const projectSelect = document.getElementById('projectSelect') as HTMLSelectElement;
   const userSelect = document.getElementById('userSelect') as HTMLSelectElement;
@@ -1097,8 +1107,8 @@ async function handleAssignProjectForm(event: Event) {
   const projectId = parseInt(projectSelect.value);
   const userId = parseInt(userSelect.value);
 
-  console.log('1. Selected Project ID:', projectId);
-  console.log('2. Selected User ID:', userId);
+  // console.log('1. Selected Project ID:', projectId);
+  // console.log('2. Selected User ID:', userId);
 
   if (!projectId || !userId) {
     alert('Please select both a project and a user');

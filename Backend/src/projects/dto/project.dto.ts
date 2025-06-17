@@ -25,4 +25,4 @@ export class UpdateProjectDto {
   @IsEnum(Status)
   @IsOptional()
   status?: Status;
-} 
+}

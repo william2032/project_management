@@ -60,7 +60,7 @@ export class ProjectsController {
     console.log('=== ASSIGNMENT REQUEST ===');
     console.log('1. Project ID:', id);
     console.log('2. User ID:', userId);
-    
+
     try {
       const result = await this.projectsService.assignProject(id, userId);
       console.log('3. Assignment successful:', result);
@@ -79,7 +79,7 @@ export class ProjectsController {
     console.log('=== COMPLETE PROJECT REQUEST ===');
     console.log('1. Project ID:', id);
     console.log('2. User ID:', req.user.userId);
-    
+
     try {
       // Ensure userId is a number
       const userId = parseInt(req.user.userId, 10);
