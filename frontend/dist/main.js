@@ -7,7 +7,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-console.log('Script loaded successfully');
 // Global logout function
 function handleLogout(e) {
     if (e) {
@@ -25,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logout');
     if (logoutButton) {
         logoutButton.addEventListener('click', handleLogout);
-        console.log('Logout button initialized');
     }
     // Get all sidebar list items
     const sidebarItems = document.querySelectorAll('.sidebar li');
@@ -34,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('click', () => {
             //  section to show from data attribute
             const sectionToShow = item.getAttribute('data-section');
-            // Hiding all sections first
             document.querySelectorAll('.section').forEach((section) => {
                 section.style.display = 'none';
             });
@@ -76,26 +73,19 @@ function showResponse(message, isError = false) {
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('DOM Content Loaded');
-    console.log('Checking for forms...');
     const registerForm = document.getElementById('registerForm');
     const loginForm = document.getElementById('loginForm');
-    console.log('Register form found:', !!registerForm);
-    console.log('Login form found:', !!loginForm);
     // Initialize dashboard if on admin page
     if (document.querySelector('.dashboard-section')) {
-        console.log('Dashboard section found, initializing...');
         fetchAndDisplayUsers();
     }
     if (loginForm) {
-        console.log('Adding login form submit listener');
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault(); // Ensure this is called first
             handleLogin(e);
         });
     }
     if (registerForm) {
-        console.log('Adding register form submit listener');
         registerForm.addEventListener('submit', (e) => __awaiter(this, void 0, void 0, function* () {
             e.preventDefault();
             const formData = new FormData(registerForm);
@@ -138,11 +128,9 @@ function initializeButtons() {
     const refreshBtn = document.getElementById('refreshUsers');
     if (showUsersBtn) {
         showUsersBtn.addEventListener('click', fetchAndDisplayUsers);
-        console.log('Show users button initialized');
     }
     if (refreshBtn) {
         refreshBtn.addEventListener('click', fetchAndDisplayUsers);
-        console.log('Refresh button initialized');
     }
 }
 function fetchAndDisplayUsers() {
@@ -155,9 +143,6 @@ function fetchAndDisplayUsers() {
             window.location.href = 'login.html';
             return;
         }
-        // Debug: Check token contents
-        console.log('Token exists:', !!token);
-        console.log('Token preview:', token.substring(0, 50) + '...');
         // MODIFIED: More lenient token validation for development
         if (token !== 'your-jwt-token') {
             // Only validate if it's not the placeholder token
@@ -176,7 +161,6 @@ function fetchAndDisplayUsers() {
                 },
                 credentials: 'include'
             });
-            console.log('Response status:', response.status);
             // Handle 401 specifically
             if (response.status === 401) {
                 localStorage.removeItem('token');
@@ -189,12 +173,10 @@ function fetchAndDisplayUsers() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const users = yield response.json();
-            console.log('Users fetched:', users);
             displayUsers(users);
             updateUserCount(users.length);
         }
         catch (error) {
-            console.error('Error fetching users:', error);
             alert('Error fetching users. Check console for details.');
         }
     });
@@ -356,8 +338,7 @@ function fetchAndDisplayProjects() {
             displayProjects(projects);
         }
         catch (error) {
-            console.error('Error fetching projects:', error);
-            alert('Error fetching projects. Check console for details.');
+            alert('Error fetching projects. Try logging In Again');
         }
     });
 }
@@ -446,7 +427,6 @@ function createProject(title, description) {
                 throw new Error(`Failed to create project: ${errorText}`);
             }
             const data = yield response.json();
-            console.log('Project created:', data);
             // Clear form
             const titleInput = document.getElementById('title');
             const descriptionInput = document.getElementById('description');
@@ -455,7 +435,6 @@ function createProject(title, description) {
                 descriptionInput.value = '';
             }
             // Reload all project-related data
-            console.log('Reloading project data...');
             yield Promise.all([
                 loadProjects(),
                 loadProjectsIntoSelect(),
@@ -472,7 +451,6 @@ function createProject(title, description) {
             }
         }
         catch (error) {
-            console.error('Error creating project:', error);
             alert('Failed to create project. Please try again.');
         }
     });
@@ -480,15 +458,12 @@ function createProject(title, description) {
 // Load projects functionality
 function loadProjects() {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log('=== LOAD PROJECTS START ===');
         const token = localStorage.getItem('token');
         if (!token) {
-            console.error('No token found, redirecting to login');
             window.location.href = 'login.html';
             return;
         }
         try {
-            console.log('1. Fetching projects...');
             const response = yield fetch('http://localhost:3000/projects', {
                 method: 'GET',
                 headers: {
@@ -497,10 +472,7 @@ function loadProjects() {
                 },
                 credentials: 'include'
             });
-            console.log('2. Response status:', response.status);
-            console.log('3. Response ok:', response.ok);
             if (response.status === 401) {
-                console.error('Unauthorized access, redirecting to login');
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 window.location.href = 'login.html';
@@ -508,21 +480,16 @@ function loadProjects() {
             }
             if (!response.ok) {
                 const errorText = yield response.text();
-                console.error('4. Error response:', errorText);
                 throw new Error(`Failed to load projects: ${errorText}`);
             }
             const projects = yield response.json();
-            console.log('5. Projects loaded:', projects.length);
-            console.log('6. Projects data:', JSON.stringify(projects, null, 2));
             // Display regular projects
             const projectsList = document.getElementById('projectsList');
             if (!projectsList) {
-                console.error('7. Projects list element not found');
                 return;
             }
             // Filter active projects
             const activeProjects = projects.filter((project) => project.status !== 'completed');
-            console.log('8. Active projects:', activeProjects.length);
             projectsList.innerHTML = activeProjects
                 .map((project) => `
           <div class="project-card" data-project-id="${project.id}">
@@ -537,7 +504,6 @@ function loadProjects() {
           </div>
         `)
                 .join('');
-            console.log('9. Active projects rendered to DOM');
             // Add event listeners to buttons
             projectsList.querySelectorAll('.edit-btn').forEach(button => {
                 button.addEventListener('click', () => {
@@ -559,13 +525,8 @@ function loadProjects() {
             displayCompletedProjects(projects);
             // Update dashboard counts
             yield updateDashboardCounts(projects);
-            console.log('10. All projects loaded and displayed successfully');
-            console.log('=== LOAD PROJECTS END ===');
         }
         catch (error) {
-            console.error('=== LOAD PROJECTS ERROR ===');
-            console.error('Error details:', error);
-            console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
             // Show error message to user
             const errorMessage = document.createElement('div');
             errorMessage.className = 'error-message';
@@ -618,11 +579,7 @@ function editProject(id) {
             <textarea id="editDescription" name="description" required>${project.description}</textarea>
           </div>
           <div class="form-group">
-            <label for="editStatus">Status</label>
-            <select id="editStatus" name="status">
-              <option value="in_progress" ${project.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-              <option value="completed" ${project.status === 'completed' ? 'selected' : ''}>Completed</option>
-            </select>
+            <p> status: ${project.status === 'in_progress' ? 'in_progress' : 'completed'}</p>
           </div>
           <div class="form-actions">
             <button type="submit" class="save-btn">Save Changes</button>
@@ -640,7 +597,6 @@ function editProject(id) {
                 const updatedProject = {
                     title: document.getElementById('editTitle').value,
                     description: document.getElementById('editDescription').value,
-                    status: document.getElementById('editStatus').value
                 };
                 try {
                     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -648,7 +604,6 @@ function editProject(id) {
                         alert('You need admin privileges to update projects');
                         return;
                     }
-                    console.log('Updating project with data:', updatedProject);
                     const updateResponse = yield fetch(`http://localhost:3000/projects/${id}`, {
                         method: 'PATCH',
                         headers: {
@@ -659,11 +614,9 @@ function editProject(id) {
                     });
                     if (!updateResponse.ok) {
                         const errorText = yield updateResponse.text();
-                        console.error('Update failed with response:', errorText);
                         throw new Error(`Failed to update project: ${errorText}`);
                     }
                     const updatedData = yield updateResponse.json();
-                    console.log('Project updated successfully:', updatedData);
                     closeEditForm();
                     yield loadProjects();
                     alert('Project updated successfully!');
@@ -676,7 +629,6 @@ function editProject(id) {
             cancelBtn.addEventListener('click', closeEditForm);
         }
         catch (error) {
-            console.error('Error editing project:', error);
             alert('Failed to load project details. Please try again.');
         }
     });
@@ -720,7 +672,6 @@ function deleteProject(id) {
             yield loadProjects();
         }
         catch (error) {
-            console.error('Error deleting project:', error);
             alert('Failed to delete project. Please try again.');
         }
     });
@@ -728,7 +679,6 @@ function deleteProject(id) {
 // Update loadProjectsIntoSelect function to allow reassignment after completion
 function loadProjectsIntoSelect() {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log('Loading projects into select...');
         const token = localStorage.getItem('token');
         if (!token) {
             window.location.href = 'login.html';
@@ -749,19 +699,15 @@ function loadProjectsIntoSelect() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const projects = yield response.json();
-            console.log('Total projects loaded:', projects.length);
             const projectSelect = document.getElementById('projectSelect');
             if (!projectSelect) {
-                console.error('Project select element not found');
                 return;
             }
             // Filter out only currently assigned projects (not completed ones)
             const availableProjects = projects.filter((project) => {
                 const isAvailable = !project.assignedTo || project.status === 'completed';
-                console.log(`Project ${project.title}: assigned=${!!project.assignedTo}, status=${project.status}, available=${isAvailable}`);
                 return isAvailable;
             });
-            console.log('Available projects for assignment:', availableProjects.length);
             // Store current selection
             const currentValue = projectSelect.value;
             // Update options
@@ -789,7 +735,6 @@ function loadProjectsIntoSelect() {
             if (projectCountElement) {
                 projectCountElement.textContent = projects.length.toString();
             }
-            console.log('Projects loaded into select successfully');
         }
         catch (error) {
             console.error('Error loading projects into select:', error);
@@ -824,6 +769,7 @@ function loadUsers() {
             userSelect.innerHTML = `
       <option value="">Select a user...</option>
       ${users
+                .filter(user => user.role !== 'admin')
                 .map((user) => `
           <option value="${user.id}">${user.name} (${user.email})</option>
         `)
@@ -837,11 +783,8 @@ function loadUsers() {
 }
 // Update initializeAdmin function
 function initializeAdmin() {
-    console.log('Initializing admin functionality');
     const token = localStorage.getItem('token');
-    console.log('Current token in admin init:', token);
     if (!token) {
-        console.error('No token found in admin init');
         window.location.href = 'login.html';
         return;
     }
@@ -849,16 +792,14 @@ function initializeAdmin() {
         // Add form submit handler
         const assignProjectForm = document.getElementById('assignProjectForm');
         if (assignProjectForm) {
-            console.log('Assign project form found, adding submit listener');
             assignProjectForm.addEventListener('submit', handleAssignProjectForm);
         }
         else {
-            console.log('Assign project form not found');
+            throw new Error('Assign project form not found');
         }
         // Initialize search functionality
         initializeSearch();
         // Load initial data
-        console.log('Loading initial data...');
         loadProjects().catch(error => {
             console.error('Error loading projects:', error);
         });
@@ -884,7 +825,6 @@ function handleLogin(event) {
         const email = form.querySelector('#loginEmail').value;
         const password = form.querySelector('#loginPassword').value;
         try {
-            console.log('Attempting login for:', email);
             const response = yield fetch('http://localhost:3000/auth/login', {
                 method: 'POST',
                 headers: {
@@ -944,7 +884,6 @@ function handleAssignProjectForm(event) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         event.preventDefault();
-        console.log('=== ASSIGN PROJECT FORM SUBMIT ===');
         const projectSelect = document.getElementById('projectSelect');
         const userSelect = document.getElementById('userSelect');
         if (!projectSelect || !userSelect) {
@@ -953,8 +892,6 @@ function handleAssignProjectForm(event) {
         }
         const projectId = parseInt(projectSelect.value);
         const userId = parseInt(userSelect.value);
-        console.log('1. Selected Project ID:', projectId);
-        console.log('2. Selected User ID:', userId);
         if (!projectId || !userId) {
             alert('Please select both a project and a user');
             return;
@@ -965,7 +902,6 @@ function handleAssignProjectForm(event) {
             return;
         }
         try {
-            console.log('3. Sending assignment request...');
             const response = yield fetch(`http://localhost:3000/projects/${projectId}/assign/${userId}`, {
                 method: 'PATCH',
                 headers: {
@@ -973,10 +909,8 @@ function handleAssignProjectForm(event) {
                     'Content-Type': 'application/json'
                 }
             });
-            console.log('4. Response status:', response.status);
             if (!response.ok) {
                 const errorData = yield response.json();
-                console.error('5. Assignment failed:', errorData);
                 if ((_a = errorData.message) === null || _a === void 0 ? void 0 : _a.includes('already assigned')) {
                     alert('This user is already assigned to another project. A user can only be assigned to one project at a time.');
                 }
@@ -986,12 +920,10 @@ function handleAssignProjectForm(event) {
                 return;
             }
             const updatedProject = yield response.json();
-            console.log('6. Project assigned successfully:', updatedProject);
             // Clear the form
             projectSelect.value = '';
             userSelect.value = '';
             // Reload all project-related data
-            console.log('7. Reloading project data...');
             yield Promise.all([
                 loadProjects(),
                 loadProjectsIntoSelect(),
@@ -1000,7 +932,6 @@ function handleAssignProjectForm(event) {
             alert('Project assigned successfully!');
         }
         catch (error) {
-            console.error('7. Assignment error:', error);
             alert('Failed to assign project. Please try again.');
         }
     });
@@ -1079,11 +1010,9 @@ function closeAssignDialog() {
 }
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, checking for forms');
     // Add form submit handler
     const addProjectForm = document.getElementById('addProjectForm');
     if (addProjectForm) {
-        console.log('Add project form found, adding submit listener');
         addProjectForm.addEventListener('submit', handleFormSubmit);
     }
     else {
@@ -1157,7 +1086,6 @@ function displayCompletedProjects(projects) {
         return;
     // Filter completed projects
     const completedProjects = projects.filter(project => project.status === 'completed');
-    console.log('Completed projects:', completedProjects.length);
     if (completedProjects.length === 0) {
         completedProjectsList.innerHTML = `
       <div class="no-projects">
@@ -1289,7 +1217,6 @@ function viewCompletedProjectDetails(id) {
             });
         }
         catch (error) {
-            console.error('Error viewing completed project:', error);
             alert('Failed to load project details. Please try again.');
         }
     });
