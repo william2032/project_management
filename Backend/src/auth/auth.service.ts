@@ -1,6 +1,8 @@
+import { MailerService } from '@nestjs-modules/mailer';
 import {
   ConflictException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
@@ -12,34 +14,33 @@ import { CustomJwtService } from './jwt.service';
 
 @Injectable()
 export class AuthService {
-  private readonly SALT_ROUNDS = 10;
+  private readonly logger = new Logger(AuthService.name);
+  private readonly SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS || '10');
 
   constructor(
     private readonly userService: UsersService,
     private readonly jwtService: CustomJwtService,
     private readonly prisma: PrismaService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async register(userData: RegisterUserDto) {
-    console.log('Auth Service - Registering user:', { email: userData.email });
+    this.logger.log(`Registering user: ${userData.email}`);
 
-    // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
       where: { email: userData.email },
     });
 
     if (existingUser) {
-      console.log('Auth Service - User already exists:', existingUser.email);
+      this.logger.warn(`User already exists: ${existingUser.email}`);
       throw new ConflictException('Email already in use');
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(
       userData.password,
       this.SALT_ROUNDS,
     );
 
-    // Create user with default 'USER' role
     const user = await this.prisma.user.create({
       data: {
         ...userData,
@@ -54,29 +55,26 @@ export class AuthService {
       },
     });
 
-    console.log('Auth Service - User registered successfully:', user);
+    this.logger.log(`User registered successfully: ${user.email}`);
     return { message: 'User created', user };
   }
 
   async login(email: string, password: string, dto: LoginUserDto) {
-    console.log('Auth Service - Attempting login for:', email);
+    this.logger.log(`Attempting login for: ${email}`);
 
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
-    console.log(
-      'Auth Service - Found user:',
-      user ? { ...user, password: '[REDACTED]' } : null,
-    );
+    this.logger.debug(`Found user: ${user?.email || 'Not found'}`);
 
     if (!user) {
-      console.log('Auth Service - User not found');
+      this.logger.warn('User not found during login');
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const isValid = await bcrypt.compare(dto.password, user.password);
-    console.log('Auth Service - Password validation:', isValid);
+    this.logger.debug(`Password validation result: ${isValid}`);
 
     if (user && isValid) {
       const payload = {
@@ -84,13 +82,26 @@ export class AuthService {
         email: user.email,
         role: user.role,
       };
-      console.log('Auth Service - Generating token with payload:', payload);
 
       const token = this.jwtService.generateToken(payload);
-      console.log(
-        'Auth Service - Token generated:',
-        token.substring(0, 20) + '...',
-      );
+
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        await this.mailerService.sendMail({
+          to: user.email,
+          subject: 'Welcome to Teach2Give!',
+          template: '../templates/email/welcome.ejs',
+          context: {
+            name: user.name,
+            email: user.email,
+          },
+        });
+      } catch (emailError) {
+        this.logger.warn(
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          `Failed to send welcome email to ${user.email}: ${emailError.message}`,
+        );
+      }
 
       return {
         access_token: token,
@@ -103,7 +114,7 @@ export class AuthService {
       };
     }
 
-    console.log('Auth Service - Invalid credentials');
+    this.logger.warn('Invalid credentials during login');
     throw new UnauthorizedException('Invalid credentials');
   }
 }
