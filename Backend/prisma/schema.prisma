@@ -14,28 +14,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum EmailStatus {
-  SENT
-  NOT_SENT
-  PENDING
-  PROCESSING
-  FAILED
-}
-
 model User {
-  id           Int      @id @default(autoincrement())
-  name         String
-  email        String   @unique
-  password     String
-  role         Role     @default(user)
-  profileImage String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  project      Project? // One-to-one relation with Project
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  password        String
+  role            Role     @default(user)
+  profileImage    String?
+  assignedProject Project? // One-to-one relation with Project
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Project {
-  id          Int         @id @default(autoincrement())
+  id          String      @id @default(uuid())
   title       String
   name        String? // Add this if you're using project.name in your code
   description String
@@ -44,8 +36,8 @@ model Project {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   assignedTo  User?       @relation(fields: [userId], references: [id])
-  userId      Int?        @unique
-  emailStatus EmailStatus @default(NOT_SENT) // ➕ Add this line
+  userId      String?     @unique
+  emailStatus EmailStatus @default(NOT_SENT)
 }
 
 enum Role {
@@ -57,6 +49,14 @@ enum Status {
   pending
   in_progress
   completed
+}
+
+enum EmailStatus {
+  SENT
+  NOT_SENT
+  PENDING
+  PROCESSING
+  FAILED
 }
 
 model EmailQueue {

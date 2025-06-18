@@ -1,21 +1,24 @@
 import {
   BadRequestException,
-  Injectable,
-  NotFoundException,
-  InternalServerErrorException,
   ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { $Enums } from 'generated/prisma';
 import * as bcrypt from 'bcrypt';
 import {
-  UserResponse,
-  LoginResponse,
-  UpdateUserDto,
   DeleteResponse,
-  RegisterUserDto,
+  LoginResponse,
   LoginUserDto,
+  RegisterUserDto,
+  UpdateUserDto,
+  UserResponse,
 } from './types/types';
+import Role = $Enums.Role;
+
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
@@ -48,12 +51,12 @@ export class UsersService {
 
       const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-      const newUser = await this.prisma.user.create({
+      return await this.prisma.user.create({
         data: {
           name: dto.name.trim(),
           email: dto.email.toLowerCase().trim(),
           password: hashedPassword,
-          role: 'user',
+          role: Role.user, // Use enum instead of string
         },
         select: {
           id: true,
@@ -61,10 +64,10 @@ export class UsersService {
           email: true,
           role: true,
           profileImage: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
-
-      return newUser;
     } catch (error) {
       if (
         error instanceof BadRequestException ||
@@ -130,13 +133,13 @@ export class UsersService {
     }
   }
 
-  async findById(id: number): Promise<UserResponse | null> {
+  async findById(id: string): Promise<UserResponse | null> {
     try {
-      if (!id || id <= 0) {
+      if (!id?.trim()) {
         throw new BadRequestException('Valid user ID is required');
       }
 
-      const user = await this.prisma.user.findUnique({
+      return await this.prisma.user.findUnique({
         where: { id },
         select: {
           id: true,
@@ -144,10 +147,10 @@ export class UsersService {
           email: true,
           role: true,
           profileImage: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
-
-      return user;
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -160,29 +163,29 @@ export class UsersService {
 
   async findAll(): Promise<UserResponse[]> {
     try {
-      const users = await this.prisma.user.findMany({
+      return await this.prisma.user.findMany({
         select: {
           id: true,
           name: true,
           email: true,
           role: true,
           profileImage: true,
+          createdAt: true,
+          updatedAt: true,
         },
         orderBy: {
-          id: 'asc',
+          createdAt: 'desc', // Changed from 'id' to 'createdAt' since UUIDs don't sort chronologically
         },
       });
-
-      return users;
     } catch (error) {
       console.error('Error in findAll:', error);
       throw new InternalServerErrorException('Failed to retrieve users');
     }
   }
 
-  async findOne(id: number): Promise<UserResponse> {
+  async findOne(id: string): Promise<UserResponse> {
     try {
-      if (!id || id <= 0) {
+      if (!id?.trim()) {
         throw new BadRequestException('Valid user ID is required');
       }
 
@@ -194,6 +197,8 @@ export class UsersService {
           email: true,
           role: true,
           profileImage: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
 
@@ -215,9 +220,9 @@ export class UsersService {
     }
   }
 
-  async update(id: number, updateData: UpdateUserDto): Promise<UserResponse> {
+  async update(id: string, updateData: UpdateUserDto): Promise<UserResponse> {
     try {
-      if (!id || id <= 0) {
+      if (!id?.trim()) {
         throw new BadRequestException('Valid user ID is required');
       }
 
@@ -256,7 +261,9 @@ export class UsersService {
       }
 
       // Prepare data for update
-      const dataToUpdate: Partial<UpdateUserDto> = {};
+      const dataToUpdate: any = {
+        updatedAt: new Date(),
+      };
 
       if (updateData.name) {
         dataToUpdate.name = updateData.name.trim();
@@ -274,6 +281,11 @@ export class UsersService {
         dataToUpdate.profileImage = updateData.profileImage;
       }
 
+      // Handle role update if provided and user has permission
+      if (updateData.role !== undefined) {
+        dataToUpdate.role = updateData.role;
+      }
+
       const updatedUser = await this.prisma.user.update({
         where: { id },
         data: dataToUpdate,
@@ -283,6 +295,8 @@ export class UsersService {
           email: true,
           role: true,
           profileImage: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
 
@@ -301,18 +315,28 @@ export class UsersService {
     }
   }
 
-  async delete(id: number): Promise<DeleteResponse> {
+  async delete(id: string): Promise<DeleteResponse> {
     try {
-      if (!id || id <= 0) {
+      if (!id?.trim()) {
         throw new BadRequestException('Valid user ID is required');
       }
 
       const user = await this.prisma.user.findUnique({
         where: { id },
+        include: {
+          assignedProject: true, // Check if user has assigned projects
+        },
       });
 
       if (!user) {
         throw new NotFoundException(`User with ID ${id} not found`);
+      }
+
+      // Check if user has assigned projects
+      if (user.assignedProject) {
+        throw new BadRequestException(
+          'Cannot delete user with assigned projects. Please unassign projects first.',
+        );
       }
 
       await this.prisma.user.delete({
@@ -332,31 +356,50 @@ export class UsersService {
       throw new InternalServerErrorException('Failed to delete user');
     }
   }
-  async getUserProjects(userId: number): Promise<any[]> {
+
+  async getUserProjects(userId: string): Promise<any[]> {
     try {
-      if (!userId || userId <= 0) {
+      if (!userId?.trim()) {
         throw new BadRequestException('Valid user ID is required');
       }
 
-      const projects = await this.prisma.project.findMany({
-        where: { userId },
+      // First verify user exists
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+
+      // Since it's a one-to-one relationship, get the single assigned project
+      const userWithProject = await this.prisma.user.findUnique({
+        where: { id: userId },
         include: {
-          assignedTo: {
+          assignedProject: {
             select: {
               id: true,
-              name: true,
-              email: true,
+              title: true,
+              description: true,
+              status: true,
+              endDate: true,
+              createdAt: true,
+              updatedAt: true,
+              emailStatus: true,
             },
           },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
       });
 
-      return projects;
+      // Return array for consistency with existing API, but it will have 0 or 1 project
+      return userWithProject?.assignedProject
+        ? [userWithProject.assignedProject]
+        : [];
     } catch (error) {
-      if (error instanceof BadRequestException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
       console.error('Error getting user projects:', error);

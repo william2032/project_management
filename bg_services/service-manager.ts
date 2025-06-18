@@ -1,6 +1,10 @@
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {BaseBackgroundService} from "./base.service";
+import { BaseBackgroundService } from '@backend/bg-services/base.background.service';
+import { EmailBackgroundService } from '@backend/bg-services/email.background.service';
+import { ProjectStatusBackgroundService } from '@backend/bg-services/project-status.background.service';
+import { PrismaService } from '@backend/prisma/prisma.service';
+import { EmailService } from '@backend/email/email.service';
 
 export class BackgroundServiceManager {
     private readonly logger = new Logger('BackgroundServiceManager');

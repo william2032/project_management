@@ -27,5 +27,6 @@ Content-Type: {{contentType}}
   "role": "ADMIN"
 }
 
+
 ### 2.1 Get user by ID
 GET {{baseUrl}}/users/1

@@ -7,26 +7,41 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
-import { Project } from 'generated/prisma';
+import { $Enums, Project } from 'generated/prisma';
+import { EmailService } from '../email/email.service';
+import EmailStatus = $Enums.EmailStatus;
+import Status = $Enums.Status;
 
 @Injectable()
 export class ProjectsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
-  async create(createProjectDto: CreateProjectDto) {
+  async create(dto: CreateProjectDto) {
     try {
-      console.log('Creating project with data:', createProjectDto);
-
       const projectData = {
-        title: createProjectDto.title,
-        description: createProjectDto.description,
-        status: 'in_progress' as const,
+        title: dto.title,
+        description: dto.description,
+        status: dto.status || Status.pending,
+        endDate: dto.endDate ? new Date(dto.endDate) : null,
+        ...(dto.assigneeId && { userId: dto.assigneeId }),
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       const result = await this.prisma.project.create({
         data: projectData,
+        include: {
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
       });
 
       console.log('Created project:', result);
@@ -56,7 +71,7 @@ export class ProjectsService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     try {
       const project = await this.prisma.project.findUnique({
         where: { id },
@@ -74,7 +89,6 @@ export class ProjectsService {
       if (!project) {
         throw new NotFoundException(`Project with ID ${id} not found`);
       }
-
       return project;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -85,7 +99,7 @@ export class ProjectsService {
     }
   }
 
-  async update(id: number, updateProjectDto: UpdateProjectDto) {
+  async update(id: string, updateProjectDto: UpdateProjectDto) {
     try {
       const project = await this.prisma.project.findUnique({
         where: { id },
@@ -95,12 +109,63 @@ export class ProjectsService {
         throw new NotFoundException(`Project with ID ${id} not found`);
       }
 
+      // Prepare update data
+      const updateData: any = {
+        ...updateProjectDto,
+        updatedAt: new Date(),
+      };
+
+      // Handle endDate conversion
+      if (updateProjectDto.endDate) {
+        updateData.endDate = new Date(updateProjectDto.endDate);
+      }
+
+      // Handle assignee assignment
+      if (updateProjectDto.assigneeId) {
+        const assignee = await this.prisma.user.findUnique({
+          where: { id: updateProjectDto.assigneeId },
+          select: { id: true, email: true, name: true },
+        });
+
+        if (!assignee) {
+          throw new NotFoundException('Assignee not found');
+        }
+
+        // Check if user is already assigned to another project
+        const existingAssignment = await this.prisma.project.findFirst({
+          where: {
+            userId: updateProjectDto.assigneeId,
+            id: { not: id }, // Exclude current project
+          },
+        });
+
+        if (existingAssignment) {
+          throw new BadRequestException(
+            'User is already assigned to another project',
+          );
+        }
+
+        updateData.userId = updateProjectDto.assigneeId;
+        delete updateData.assigneeId; // Remove this as it's not a valid database field
+
+        // Send assignment email
+        try {
+          const emailSent = await this.emailService.sendProjectAssignmentEmail(
+            assignee,
+            project.title,
+          );
+          updateData.emailStatus = emailSent
+            ? EmailStatus.SENT
+            : EmailStatus.NOT_SENT;
+        } catch (emailError) {
+          console.error('Error sending assignment email:', emailError);
+          updateData.emailStatus = EmailStatus.FAILED;
+        }
+      }
+
       return await this.prisma.project.update({
         where: { id },
-        data: {
-          ...updateProjectDto,
-          updatedAt: new Date(),
-        },
+        data: updateData,
         include: {
           assignedTo: {
             select: {
@@ -112,7 +177,10 @@ export class ProjectsService {
         },
       });
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       console.error('Error updating project:', error);
@@ -120,7 +188,7 @@ export class ProjectsService {
     }
   }
 
-  async remove(id: number): Promise<any> {
+  async remove(id: string): Promise<Project> {
     try {
       const project = await this.prisma.project.findUnique({
         where: { id },
@@ -142,7 +210,7 @@ export class ProjectsService {
     }
   }
 
-  async assignProject(id: number, userId: number): Promise<any> {
+  async assignProject(id: string, userId: string): Promise<any> {
     try {
       // Check if project exists
       const project = await this.prisma.project.findUnique({
@@ -151,6 +219,16 @@ export class ProjectsService {
 
       if (!project) {
         throw new NotFoundException(`Project with ID ${id} not found`);
+      }
+
+      // Check if user exists
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, email: true },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
       }
 
       // Check if user is already assigned to another project
@@ -167,11 +245,10 @@ export class ProjectsService {
         );
       }
 
-      return await this.prisma.project.update({
+      const updatedProject = await this.prisma.project.update({
         where: { id },
         data: {
           userId: userId,
-          status: 'in_progress',
           updatedAt: new Date(),
         },
         include: {
@@ -184,6 +261,34 @@ export class ProjectsService {
           },
         },
       });
+
+      // Send assignment email
+      try {
+        const emailSent = await this.emailService.sendProjectAssignmentEmail(
+          user,
+          project.title,
+        );
+
+        // Update email status
+        await this.prisma.project.update({
+          where: { id },
+          data: {
+            emailStatus: emailSent ? EmailStatus.SENT : EmailStatus.NOT_SENT,
+          },
+        });
+      } catch (emailError) {
+        console.error('Error sending assignment email:', emailError);
+        await this.prisma.project.update({
+          where: { id },
+          data: { emailStatus: EmailStatus.FAILED },
+        });
+      }
+
+      return {
+        success: true,
+        message: 'Project assigned successfully',
+        data: updatedProject,
+      };
     } catch (error) {
       if (
         error instanceof NotFoundException ||
@@ -195,7 +300,8 @@ export class ProjectsService {
       throw new InternalServerErrorException('Failed to assign project');
     }
   }
-  async getUserProjects(userId: number): Promise<Project[]> {
+
+  async getUserProjects(userId: string): Promise<Project[]> {
     try {
       // First verify the user exists
       const user = await this.prisma.user.findUnique({
@@ -206,7 +312,7 @@ export class ProjectsService {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
 
-      // Return projects for this user without admin check
+      // Return projects for this user
       return await this.prisma.project.findMany({
         where: { userId },
         include: {
@@ -231,23 +337,13 @@ export class ProjectsService {
     }
   }
 
-  async markAsComplete(projectId: number, userId: number) {
+  async markAsComplete(projectId: string, userId: string): Promise<Project> {
     try {
-      // Ensure both IDs are numbers
-      const projectIdNum = Number(projectId);
-      const userIdNum = Number(userId);
-
-      if (isNaN(projectIdNum) || isNaN(userIdNum)) {
-        throw new Error('Invalid project or user ID');
-      }
-
       // First check if the project exists and is assigned to the user
       const project = await this.prisma.project.findFirst({
         where: {
-          id: projectIdNum,
-          assignedTo: {
-            id: userIdNum,
-          },
+          id: projectId,
+          userId: userId,
         },
         include: {
           assignedTo: true,
@@ -259,10 +355,10 @@ export class ProjectsService {
       }
 
       // Update the project status
-      return await this.prisma.project.update({
-        where: { id: projectIdNum },
+      const updatedProject = await this.prisma.project.update({
+        where: { id: projectId },
         data: {
-          status: 'completed',
+          status: Status.completed,
           updatedAt: new Date(),
         },
         include: {
@@ -275,6 +371,19 @@ export class ProjectsService {
           },
         },
       });
+
+      // Send completion email
+      try {
+        const assigneeName = updatedProject.assignedTo?.name ?? 'Unknown User';
+        await this.emailService.sendProjectCompletionEmail(
+          updatedProject.title,
+          assigneeName,
+        );
+      } catch (emailError) {
+        console.error('Error sending completion email:', emailError);
+      }
+
+      return updatedProject;
     } catch (error) {
       console.error('Detailed error completing project:', error);
       if (error instanceof NotFoundException) {

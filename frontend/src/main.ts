@@ -602,16 +602,16 @@ async function loadProjects(): Promise<void> {
             button.addEventListener('click', () => {
                 const projectId = button.getAttribute('data-project-id');
                 if (projectId) {
-                    editProject(parseInt(projectId));
+                    editProject(projectId);
                 }
             });
         });
 
         projectsList.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', () => {
-                const projectId = button.getAttribute('data-project-id');
+                const projectId = button.getAttribute('data-project-id') as string;
                 if (projectId) {
-                    deleteProject(parseInt(projectId));
+                    deleteProject(projectId);
                 }
             });
         });
@@ -641,7 +641,7 @@ async function loadProjects(): Promise<void> {
 }
 
 // Edit project functionality
-async function editProject(id: number) {
+async function editProject(id: string) {
     try {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -749,7 +749,7 @@ function closeEditForm() {
 }
 
 // Delete project functionality
-async function deleteProject(id: number) {
+async function deleteProject(id: string) {
     if (!confirm('Are you sure you want to delete this project?')) return;
 
     const token = localStorage.getItem('token');
@@ -1018,9 +1018,9 @@ async function handleAssignProjectForm(event: Event) {
         return;
     }
 
-    const projectId = parseInt(projectSelect.value);
-    const userId = parseInt(userSelect.value);
-
+    const projectId = projectSelect.value;
+    const userId = userSelect.value;
+    console.log(projectId);
 
     if (!projectId || !userId) {
         alert('Please select both a project and a user');
@@ -1119,7 +1119,7 @@ async function updateDashboardCounts(projects?: Project[]): Promise<void> {
 }
 
 // Add function to show assign dialog
-function showAssignDialog(projectId: number) {
+function showAssignDialog(projectId: string) {
     const dialog = document.createElement('div');
     dialog.className = 'assign-dialog';
     dialog.innerHTML = `
@@ -1274,9 +1274,9 @@ function displayCompletedProjects(projects: Project[]) {
     // Add event listeners to view buttons
     completedProjectsList.querySelectorAll('.view-btn').forEach(button => {
         button.addEventListener('click', () => {
-            const projectId = button.getAttribute('data-project-id');
+            const projectId = button.getAttribute('data-project-id') as string;
             if (projectId) {
-                viewCompletedProjectDetails(parseInt(projectId));
+                viewCompletedProjectDetails(projectId);
             }
         });
     });
@@ -1296,7 +1296,7 @@ function formatDate(dateString: string): string {
 }
 
 // Add function to view completed project details
-async function viewCompletedProjectDetails(id: number) {
+async function viewCompletedProjectDetails(id: string) {
     try {
         const token = localStorage.getItem('token');
         if (!token) {

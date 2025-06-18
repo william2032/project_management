@@ -1,7 +1,7 @@
 export type Role = 'admin' | 'user'; //  specific roles
 
 export interface UserResponse {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: Role;
@@ -11,7 +11,7 @@ export interface UserResponse {
 export interface LoginResponse {
   access_token: string;
   user: {
-    id: number;
+    id: string;
     email: string;
     name: string;
     role: Role;

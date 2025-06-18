@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  ParseIntPipe,
   Request,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
@@ -36,63 +35,33 @@ export class ProjectsController {
   @Get(':id')
   @Roles('admin')
   findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(+id);
+    return this.projectsService.findOne(id);
   }
 
   @Patch(':id')
   @Roles('admin')
   update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(+id, updateProjectDto);
+    return this.projectsService.update(id, updateProjectDto);
   }
 
   @Delete(':id')
   @Roles('admin')
   remove(@Param('id') id: string) {
-    return this.projectsService.remove(+id);
+    return this.projectsService.remove(id);
   }
 
   @Patch(':id/assign/:userId')
   @Roles('admin')
   async assignProject(
-    @Param('id', ParseIntPipe) id: number,
-    @Param('userId', ParseIntPipe) userId: number,
+    @Param('id') id: string,
+    @Param('userId') userId: string,
   ) {
-    console.log('=== ASSIGNMENT REQUEST ===');
-    console.log('1. Project ID:', id);
-    console.log('2. User ID:', userId);
-    
-    try {
-      const result = await this.projectsService.assignProject(id, userId);
-      console.log('3. Assignment successful:', result);
-      return result;
-    } catch (error) {
-      console.error('4. Assignment failed:', error);
-      throw error;
-    }
+    return this.projectsService.assignProject(id, userId);
   }
 
   @Patch(':id/complete')
-  async markAsComplete(
-    @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
-  ) {
-    console.log('=== COMPLETE PROJECT REQUEST ===');
-    console.log('1. Project ID:', id);
-    console.log('2. User ID:', req.user.userId);
-    
-    try {
-      // Ensure userId is a number
-      const userId = parseInt(req.user.userId, 10);
-      if (isNaN(userId)) {
-        throw new Error('Invalid user ID');
-      }
-
-      const result = await this.projectsService.markAsComplete(id, userId);
-      console.log('3. Project marked as complete:', result);
-      return result;
-    } catch (error) {
-      console.error('4. Failed to mark project as complete:', error);
-      throw error;
-    }
+  async markAsComplete(@Param('id') id: string, @Request() req: any) {
+    const { id: userId } = req.user;
+    return this.projectsService.markAsComplete(id, userId);
   }
 }

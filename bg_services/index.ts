@@ -15,6 +15,7 @@ async function bootstrap() {
         user: configService.get<string>('MAIL_USER'),
         pass: configService.get<string>('MAIL_PASS'),
     };
+    console.log(mailerConfig.host);
     if (!mailerConfig.host || !mailerConfig.port || !mailerConfig.user || !mailerConfig.pass) {
         throw new Error('Mailer configuration is incomplete. Please check your environment variables.');
     }
@@ -31,6 +32,7 @@ async function bootstrap() {
     // Mock MailerService instance for direct usage (adjust as per your EmailService requirements)
     const mailerService = new MailerService({ transporter, defaults: { from: mailerConfig.user } } as any, null as any);
 
+    // @ts-ignore
     const emailService = new EmailService(mailerService);
     const serviceManager = new BackgroundServiceManager(configService, prisma, emailService);
 

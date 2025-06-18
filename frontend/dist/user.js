@@ -235,8 +235,7 @@ function loadUserProjects(userId) {
                 console.error('[DEBUG] No user data found');
                 throw new Error('User data not found');
             }
-            console.log('[DEBUG] Making request to API');
-            const response = yield fetch(`http://localhost:3000/users/${userId}/projects`, {
+            const response = yield fetch(`http://localhost:3000/users/${userId}/project`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
