@@ -509,7 +509,7 @@ function loadProjects() {
                 button.addEventListener('click', () => {
                     const projectId = button.getAttribute('data-project-id');
                     if (projectId) {
-                        editProject(parseInt(projectId));
+                        editProject(projectId);
                     }
                 });
             });
@@ -517,7 +517,7 @@ function loadProjects() {
                 button.addEventListener('click', () => {
                     const projectId = button.getAttribute('data-project-id');
                     if (projectId) {
-                        deleteProject(parseInt(projectId));
+                        deleteProject(projectId);
                     }
                 });
             });
@@ -890,8 +890,10 @@ function handleAssignProjectForm(event) {
             console.error('Form elements not found');
             return;
         }
-        const projectId = parseInt(projectSelect.value);
-        const userId = parseInt(userSelect.value);
+        const projectId = projectSelect.value;
+        const userId = userSelect.value;
+        console.log(projectId);
+
         if (!projectId || !userId) {
             alert('Please select both a project and a user');
             return;
@@ -1129,7 +1131,7 @@ function displayCompletedProjects(projects) {
         button.addEventListener('click', () => {
             const projectId = button.getAttribute('data-project-id');
             if (projectId) {
-                viewCompletedProjectDetails(parseInt(projectId));
+                viewCompletedProjectDetails(projectId);
             }
         });
     });

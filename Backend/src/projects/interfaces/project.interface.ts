@@ -1,7 +1,7 @@
 import { Status, User } from 'generated/prisma';
 
 export interface Project {
-  id: number;
+  id: string;
   name: string;
   description: string;
   endDate?: Date;
@@ -10,7 +10,7 @@ export interface Project {
 }
 
 export interface ProjectResponse {
-  id: number;
+  id: string;
   name: string;
   description: string;
   endDate?: Date;

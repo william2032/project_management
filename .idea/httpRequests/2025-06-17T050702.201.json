@@ -1,0 +1,7 @@
+{
+  "id": 2,
+  "name": "Admin",
+  "email": "admin1@example.com",
+  "role": "user",
+  "profileImage": null
+}

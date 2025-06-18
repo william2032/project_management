@@ -46,21 +46,12 @@ export class UsersController {
         loginDto.password,
         loginDto,
       );
-      console.log('Login successful for:', loginDto.email);
-      console.log(
-        'Generated token:',
-        result.access_token.substring(0, 50) + '...',
-      );
       return result;
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Login failed:', error.message);
-      } else {
-        console.error('Login failed:', error);
-      }
       throw error;
     }
   }
+
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -69,12 +60,12 @@ export class UsersController {
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard) // Only requires valid JWT, not admin
+  @UseGuards(JwtAuthGuard)
   getCurrentUser(
-    @Request() req: { user: { userId: number; email: string; role: string } },
+    @Request() req: { user: { id: string; email: string; role: string } },
   ) {
     return {
-      id: req.user.userId,
+      id: req.user.id,
       email: req.user.email,
       role: req.user.role,
     };
@@ -84,7 +75,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   async getById(@Param('id') id: string): Promise<UserResponse> {
-    return this.usersService.findOne(+id);
+    return this.usersService.findOne(id);
   }
 
   @Patch(':id')
@@ -94,19 +85,19 @@ export class UsersController {
     @Param('id') id: string,
     @Body() updateData: UpdateUserDto,
   ): Promise<UserResponse> {
-    return this.usersService.update(+id, updateData);
+    return this.usersService.update(id, updateData);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   async deleteUser(@Param('id') id: string): Promise<DeleteResponse> {
-    return this.usersService.delete(+id);
+    return this.usersService.delete(id);
   }
 
-  @Get(':id/projects')
+  @Get(':id/project')
   @UseGuards(JwtAuthGuard)
-  async getUserProjects(@Param('id') id: string) {
-    return this.usersService.getUserProjects(+id);
+  async getUserProject(@Param('id') id: string) {
+    return this.usersService.getUserProjects(id);
   }
 }

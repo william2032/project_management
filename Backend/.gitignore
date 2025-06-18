@@ -3,6 +3,7 @@
 /node_modules
 /build
 
+frontend/dist
 # Logs
 logs
 *.log

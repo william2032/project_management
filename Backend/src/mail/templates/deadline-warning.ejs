@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Project Deadline Alert</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f7f9fa;
+            color: #222;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            background: #fff;
+            max-width: 480px;
+            margin: 40px auto;
+            padding: 32px 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        }
+        h2 {
+            color: #f59e0b;
+            margin-top: 0;
+        }
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            margin: 16px 0;
+            border-radius: 4px;
+        }
+        .action {
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-top: 24px;
+        }
+        p {
+            margin: 16px 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Project Deadline Approaching</h2>
+    <div class="warning">
+        <p>Your project deadline is approaching soon!</p>
+    </div>
+    <p>Project: <strong><%= projectName %></strong></p>
+    <p>Deadline: <strong><%= new Date(endDate).toLocaleDateString() %></strong></p>
+    <p>Please ensure all deliverables are completed and submitted before the deadline.</p>
+    <a href="<%= projectUrl %>" class="action">View Project Details</a>
+</div>
+</body>
+</html>
