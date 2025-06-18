@@ -893,6 +893,7 @@ function handleAssignProjectForm(event) {
         const projectId = projectSelect.value;
         const userId = userSelect.value;
         console.log(projectId);
+
         if (!projectId || !userId) {
             alert('Please select both a project and a user');
             return;

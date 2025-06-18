@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
+import { NextFunction, Request, Response } from 'express';
 import { AppModule } from './app.module';
-import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +13,7 @@ async function bootstrap() {
       'http://127.0.0.1:5503',
       'http://127.0.0.1:5502',
       'http://127.0.0.1:5504',
+      'http://127.0.0.1:5505',
       'http://localhost:3000',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:63342',
