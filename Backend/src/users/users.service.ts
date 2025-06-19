@@ -286,7 +286,7 @@ export class UsersService {
         dataToUpdate.role = updateData.role;
       }
 
-      const updatedUser = await this.prisma.user.update({
+      return await this.prisma.user.update({
         where: { id },
         data: dataToUpdate,
         select: {
@@ -299,8 +299,6 @@ export class UsersService {
           updatedAt: true,
         },
       });
-
-      return updatedUser;
     } catch (error) {
       if (
         error instanceof BadRequestException ||

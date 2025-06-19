@@ -11,9 +11,13 @@
       <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2025-06-14T014518.400.json" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/2025-06-14T014518.400.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2025-06-14T015209.201.json" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/2025-06-14T015209.201.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2025-06-14T015645.400.json" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/2025-06-14T015645.400.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2025-06-17T050702.201.json" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/2025-06-17T050702.201.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2025-06-17T050719.201.json" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/2025-06-17T050719.201.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/httpRequests/http-client.cookies" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/http-client.cookies" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/httpRequests/http-requests-log.http" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/http-requests-log.http" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/prettier.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/prettier.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/.gitignore" afterDir="false" />
@@ -62,7 +66,6 @@
       <change beforePath="$PROJECT_DIR$/Backend/src/prisma/prisma.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/prisma/prisma.module.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/prisma/prisma.service.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/prisma/prisma.service.spec.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/prisma/prisma.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/prisma/prisma.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/src/projects/dto/project.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/dto/project.dto.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/projects/dtos/assign-project.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/dtos/assign-project.dto.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/projects/dtos/complete-project.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/dtos/complete-project.dto.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/projects/dtos/create-project.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/dtos/create-project.dto.ts" afterDir="false" />
@@ -74,7 +77,6 @@
       <change beforePath="$PROJECT_DIR$/Backend/src/projects/projects.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/projects/projects.service.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/users/dtos/login-user.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/dtos/login-user.dto.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/users/dtos/register-user.dto.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/dtos/register-user.dto.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Backend/src/users/types/types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/types/types.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/users/users.controller.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/users.controller.spec.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/users/users.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/users.controller.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Backend/src/users/users.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Backend/src/users/users.module.ts" afterDir="false" />
@@ -90,6 +92,7 @@
       <change beforePath="$PROJECT_DIR$/bg_services/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/bg_services/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bg_services/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/bg_services/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bg_services/service-manager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/bg_services/service-manager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bg_services/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/bg_services/tsconfig.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/dist/login.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/login.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/dist/login.js.map" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/login.js.map" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/dist/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/dist/main.js" afterDir="false" />
@@ -237,9 +240,6 @@
       <change beforePath="$PROJECT_DIR$/frontend/node_modules/typescript/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/node_modules/typescript/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/user.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/user.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/styles/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/styles/style.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/styles/users.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/styles/users.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -340,7 +340,8 @@
       <workItem from="1749882805938" duration="9593000" />
       <workItem from="1749892672046" duration="150000" />
       <workItem from="1750182599188" duration="4405000" />
-      <workItem from="1750225623876" duration="19336000" />
+      <workItem from="1750225623876" duration="25020000" />
+      <workItem from="1750306700723" duration="15000" />
     </task>
     <servers />
   </component>
